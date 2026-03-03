@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import {
     Radio, Shield, Zap, MapPin, Bell, Users,
-    Activity, Lock, ChevronRight, ArrowRight
+    Activity, Lock, ArrowRight
 } from 'lucide-react'
 
 function Particles() {
@@ -65,8 +65,8 @@ export default function LandingPage() {
                         <div className="logo-text">PulseNet</div>
                     </div>
                 </div>
-                <div className="flex items-center gap-12">
-                    <div className="flex items-center gap-8">
+                <div className="flex items-center gap-8">
+                    <div className="flex items-center gap-8 hide-mobile">
                         <div className="status-dot live"></div>
                         <span className="text-sm text-secondary">System Operational</span>
                     </div>
@@ -94,15 +94,11 @@ export default function LandingPage() {
                 <div className="hero-buttons anim-fade-up delay-3">
                     <button className="btn btn-danger btn-lg" onClick={() => navigate('/register')}>
                         <Zap size={18} />
-                        Join an Event
+                        Get Started
                     </button>
-                    <button className="btn btn-primary btn-lg" onClick={() => navigate('/admin')}>
-                        Admin Dashboard
+                    <button className="btn btn-ghost btn-lg" onClick={() => navigate('/login')}>
+                        Sign In
                         <ArrowRight size={18} />
-                    </button>
-                    <button className="btn btn-ghost btn-lg" onClick={() => navigate('/dashboard')}>
-                        User View
-                        <ChevronRight size={18} />
                     </button>
                 </div>
 

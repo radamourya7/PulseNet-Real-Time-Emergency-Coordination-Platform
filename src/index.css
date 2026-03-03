@@ -105,8 +105,11 @@ button {
 /* Layout Shells */
 .app-shell {
   display: flex;
-  height: 100vh;
+  height: 100dvh;
+  /* dvh = dynamic viewport height — fixes iOS Safari URL-bar bug */
   overflow: hidden;
+  overscroll-behavior: none;
+  /* prevents rubber-band bounce on iOS */
 }
 
 .sidebar {
@@ -1712,6 +1715,30 @@ button {
     height: 120px;
   }
 }
+
+/* ── iOS Safe Area Fixes ─────────────────────────────────────────────────────
+   viewport-fit=cover means content can go under the iPhone notch/status bar.
+   env(safe-area-inset-top) pushes content down to clear it.
+   Returns 0 on Android/desktop — no side effect there.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Dashboard & admin topbar */
+.topbar {
+  padding-top: env(safe-area-inset-top);
+  height: calc(60px + env(safe-area-inset-top));
+}
+
+/* Landing page nav */
+.landing-nav {
+  padding-top: calc(16px + env(safe-area-inset-top));
+}
+
+/* Auth pages (login / register) */
+.auth-left {
+  padding-top: calc(32px + env(safe-area-inset-top));
+}
+
+/* Command center topbar already uses .topbar — covered above */
 
 
 /* ── Responsive ──────────────────────────────────────── */

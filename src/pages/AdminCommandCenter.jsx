@@ -7,7 +7,7 @@ import {
 import { io } from 'socket.io-client'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { apiFetch, getTokenPayload, logout } from '../api'
+import { apiFetch, getTokenPayload, logout, SOCKET_URL } from '../api'
 
 // Fix Leaflet default icon path issue with Vite bundler
 delete L.Icon.Default.prototype._getIconUrl
@@ -191,9 +191,16 @@ export default function AdminCommandCenter() {
             .finally(() => setLoading(false))
     }, [])
 
-    // Socket.IO real-time updates
+    // Socket.IO real-time updates — join personal admin room first
     useEffect(() => {
-        socketRef.current = io('http://localhost:5000', { transports: ['websocket'] })
+        socketRef.current = io(SOCKET_URL, { transports: ['websocket'] })
+
+        // Join admin-specific room so we only receive scoped alerts
+        const token = localStorage.getItem('token')
+        socketRef.current.on('connect', () => {
+            socketRef.current.emit('join-admin-room', token)
+        })
+
         socketRef.current.on('new-alert', alert => setAlerts(prev => [alert, ...prev]))
         socketRef.current.on('alert-updated', updated => setAlerts(prev => prev.map(a => a._id === updated._id ? updated : a)))
         socketRef.current.on('alert-deleted', ({ id }) => setAlerts(prev => prev.filter(a => a._id !== id)))

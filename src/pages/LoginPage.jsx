@@ -5,7 +5,6 @@ import { Radio, Shield, Eye, EyeOff, Lock, Mail, ArrowRight, Activity, MapPin, B
 function AuthVisual() {
     return (
         <div className="auth-visual" style={{ background: 'var(--bg-primary)' }}>
-            {/* Animated particles */}
             <div className="particles">
                 {Array.from({ length: 15 }).map((_, i) => (
                     <div key={i} className="particle" style={{
@@ -18,18 +17,14 @@ function AuthVisual() {
                 ))}
             </div>
 
-            {/* Grid */}
             <div style={{
                 position: 'absolute', inset: 0,
                 backgroundImage: 'linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px)',
                 backgroundSize: '50px 50px'
             }} />
-
-            {/* Glowing orbs */}
             <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'var(--accent-red)', filter: 'blur(120px)', opacity: 0.1, top: -100, right: -100 }} />
             <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', background: 'var(--accent-blue)', filter: 'blur(100px)', opacity: 0.12, bottom: 0, left: 0 }} />
 
-            {/* Center content */}
             <div style={{ position: 'relative', zIndex: 5, textAlign: 'center', padding: 40 }}>
                 <div style={{ marginBottom: 32 }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 24 }}>
@@ -52,7 +47,6 @@ function AuthVisual() {
                     </div>
                 </div>
 
-                {/* Fake terminal-ish live ticker */}
                 <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px 16px', textAlign: 'left', maxWidth: 340, margin: '0 auto' }}>
                     <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 8 }}>● SYSTEM LOG</div>
                     {[
@@ -72,16 +66,57 @@ function AuthVisual() {
 export default function LoginPage() {
     const navigate = useNavigate()
     const [showPw, setShowPw] = useState(false)
-    const [role, setRole] = useState('user')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
+
+    const handleLogin = async () => {
+        if (!email || !password) {
+            setError('Please enter your email and password.')
+            return
+        }
+        setError('')
+        setLoading(true)
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            })
+            const data = await res.json()
+            if (!res.ok) {
+                setError(data.message || 'Login failed. Check your credentials.')
+                return
+            }
+            // Store token and navigate based on role
+            localStorage.setItem('token', data.token)
+            const role = data.user?.role
+            if (role === 'superadmin') {
+                navigate('/superadmin')
+            } else if (role === 'admin') {
+                navigate('/admin')
+            } else {
+                navigate('/dashboard')
+            }
+        } catch {
+            setError('Cannot connect to server. Is the backend running?')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Allow Enter key to submit
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') handleLogin()
+    }
 
     return (
         <div className="auth-page">
             <div className="auth-left">
                 {/* Logo */}
                 <div className="flex items-center gap-12 mb-12" style={{ marginBottom: 40 }}>
-                    <div className="logo-icon">
-                        <Radio size={16} color="white" />
-                    </div>
+                    <div className="logo-icon"><Radio size={16} color="white" /></div>
                     <div>
                         <div className="logo-text">PulseNet</div>
                         <div className="logo-sub">Emergency OS</div>
@@ -92,31 +127,13 @@ export default function LoginPage() {
                     <h1 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: 6 }}>Welcome back</h1>
                     <p className="text-sm text-secondary" style={{ marginBottom: 32 }}>Sign in to access your command dashboard</p>
 
-                    {/* Role Toggle */}
-                    <div style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', padding: 4, display: 'flex', marginBottom: 24 }}>
-                        {[
-                            { k: 'user', label: 'User', icon: '👤' },
-                            { k: 'admin', label: 'Admin', icon: '🛡️' },
-                        ].map(({ k, label, icon }) => (
-                            <button
-                                key={k}
-                                onClick={() => setRole(k)}
-                                style={{
-                                    flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)',
-                                    background: role === k ? (k === 'admin' ? 'var(--accent-red)' : 'var(--accent-blue)') : 'transparent',
-                                    color: role === k ? 'white' : 'var(--text-muted)',
-                                    fontWeight: 600, fontSize: '0.875rem', transition: 'all var(--transition)',
-                                    cursor: 'pointer',
-                                }}
-                            >{icon} {label}</button>
-                        ))}
-                    </div>
-
-                    {role === 'admin' && (
-                        <div style={{ background: 'var(--accent-red-dim)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 'var(--radius-md)', padding: '10px 14px', marginBottom: 20 }}
-                            className="flex items-center gap-8">
-                            <Shield size={14} color="var(--accent-red)" />
-                            <span className="text-xs" style={{ color: 'var(--accent-red)', fontWeight: 500 }}>Administrative access — enhanced audit logging enabled</span>
+                    {error && (
+                        <div style={{
+                            background: 'var(--accent-red-dim)', border: '1px solid rgba(239,68,68,0.3)',
+                            borderRadius: 'var(--radius-md)', padding: '10px 14px', marginBottom: 20,
+                            color: 'var(--accent-red)', fontSize: '0.8rem'
+                        }}>
+                            ⚠️ {error}
                         </div>
                     )}
 
@@ -125,32 +142,51 @@ export default function LoginPage() {
                             <label className="form-label">Email Address</label>
                             <div style={{ position: 'relative' }}>
                                 <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                <input className="form-input" type="email" placeholder="you@organization.com" style={{ paddingLeft: 36 }} />
+                                <input
+                                    className="form-input"
+                                    type="email"
+                                    placeholder="you@organization.com"
+                                    style={{ paddingLeft: 36 }}
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    autoComplete="email"
+                                />
                             </div>
                         </div>
                         <div className="form-group">
                             <div className="flex items-center justify-between">
                                 <label className="form-label">Password</label>
-                                <button style={{ background: 'none', color: 'var(--accent-blue)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 500 }}>Forgot password?</button>
                             </div>
                             <div style={{ position: 'relative' }}>
                                 <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                <input className="form-input" type={showPw ? 'text' : 'password'} placeholder="••••••••" style={{ paddingLeft: 36, paddingRight: 40 }} />
+                                <input
+                                    className="form-input"
+                                    type={showPw ? 'text' : 'password'}
+                                    placeholder="••••••••"
+                                    style={{ paddingLeft: 36, paddingRight: 40 }}
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    autoComplete="current-password"
+                                />
                                 <button onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', color: 'var(--text-muted)', display: 'flex' }}>
                                     {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-8">
-                            <input type="checkbox" id="remember" style={{ accentColor: 'var(--accent-blue)' }} />
-                            <label htmlFor="remember" className="text-sm text-secondary" style={{ cursor: 'pointer' }}>Keep me signed in</label>
-                        </div>
-
-                        <button className={`btn ${role === 'admin' ? 'btn-danger' : 'btn-primary'} btn-lg`} style={{ justifyContent: 'center', marginTop: 4 }}
-                            onClick={() => navigate(role === 'admin' ? '/admin' : '/dashboard')}>
-                            {role === 'admin' ? <Shield size={16} /> : <ArrowRight size={16} />}
-                            Sign In as {role === 'admin' ? 'Admin' : 'User'}
+                        <button
+                            className="btn btn-primary btn-lg"
+                            style={{ justifyContent: 'center', marginTop: 4, opacity: loading ? 0.7 : 1 }}
+                            onClick={handleLogin}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                'Signing in...'
+                            ) : (
+                                <><ArrowRight size={16} /> Sign In</>
+                            )}
                         </button>
                     </div>
 

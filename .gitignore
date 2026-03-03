@@ -30,3 +30,6 @@ dist-ssr
 *.sln
 *.sw?
 *.local
+
+# PWA dev build
+dev-dist/

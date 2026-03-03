@@ -1,20 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
-import { apiFetch, getTokenPayload, logout } from '../api'
+import { apiFetch, getTokenPayload, logout, SOCKET_URL } from '../api'
 import {
     MapPin, Clock, AlertTriangle, CheckCircle, HelpCircle,
-    Activity, Bell, Navigation, Battery, Signal, Radio
+    Activity, Bell, Navigation, Battery, Signal
 } from 'lucide-react'
 import { io } from 'socket.io-client'
-
-// ── Status options ────────────────────────────────────────────────────────────
 
 const statusOptions = [
     { id: 'safe', icon: CheckCircle, label: 'Safe', desc: 'All clear, no assistance needed', color: 'var(--accent-green)', activeClass: 'active-safe' },
     { id: 'help', icon: HelpCircle, label: 'Need Help', desc: 'Assistance requested, non-critical', color: 'var(--accent-amber)', activeClass: 'active-help' },
     { id: 'emergency', icon: AlertTriangle, label: 'Emergency', desc: 'Immediate response required', color: 'var(--accent-red)', activeClass: 'active-emergency' },
 ]
-
-// ── Topbar ────────────────────────────────────────────────────────────────────
 
 function Topbar({ user, gpsActive }) {
     const initials = user?.name
@@ -24,10 +20,12 @@ function Topbar({ user, gpsActive }) {
         <div className="topbar">
             <div>
                 <div className="font-semibold" style={{ fontSize: '0.95rem' }}>My Dashboard</div>
-                <div className="text-xs text-secondary">Welcome, {user?.name || 'User'}</div>
+                <div className="text-xs text-secondary topbar-gps-label">
+                    {gpsActive ? '🟢 GPS Active' : '⚫ GPS Off'}
+                </div>
             </div>
             <div className="flex items-center gap-16 ml-auto">
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-8 hide-mobile">
                     <Battery size={14} color="var(--accent-green)" />
                     <Signal size={14} color="var(--accent-green)" />
                     <div className="status-dot live" />
@@ -49,8 +47,6 @@ function Topbar({ user, gpsActive }) {
     )
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
-
 export default function UserDashboard() {
     const [activeStatus, setActiveStatus] = useState('safe')
     const [locationSharing, setLocationSharing] = useState(false)
@@ -61,7 +57,6 @@ export default function UserDashboard() {
     const socketRef = useRef(null)
     const user = getTokenPayload()
 
-    // ── Get real GPS location ───────────────────────────────────────────────
     useEffect(() => {
         if (!navigator.geolocation) return
         const watchId = navigator.geolocation.watchPosition(
@@ -75,9 +70,8 @@ export default function UserDashboard() {
         return () => navigator.geolocation.clearWatch(watchId)
     }, [])
 
-    // ── Socket.IO — listen for alert count updates ──────────────────────────
     useEffect(() => {
-        socketRef.current = io('http://localhost:5000', { transports: ['websocket'] })
+        socketRef.current = io(SOCKET_URL, { transports: ['websocket'] })
         socketRef.current.on('new-alert', () => setActiveAlertCount(c => c + 1))
         socketRef.current.on('alert-updated', (a) => {
             if (a.status === 'resolved') setActiveAlertCount(c => Math.max(0, c - 1))
@@ -85,19 +79,15 @@ export default function UserDashboard() {
         return () => socketRef.current?.disconnect()
     }, [])
 
-    // ── Panic button ────────────────────────────────────────────────────────
     const handlePanic = async () => {
         setPanicActive(true)
         setActiveStatus('emergency')
-
         const lat = coords?.lat ?? 28.6139
         const lng = coords?.lng ?? 77.2090
-
         try {
             const alert = await apiFetch('/api/alerts', { method: 'POST', body: { lat, lng, type: 'panic' } })
             setMyAlerts(prev => [alert, ...prev])
-        } catch { /* silently fail — panic UI still shows */ }
-
+        } catch { /* silently fail */ }
         setTimeout(() => setPanicActive(false), 3000)
     }
 
@@ -113,9 +103,9 @@ export default function UserDashboard() {
         <>
             <Topbar user={user} gpsActive={locationSharing} />
             <div className="content-area">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24 }}>
+                <div className="dashboard-grid">
 
-                    {/* ── Left: Status + Location ── */}
+                    {/* ── Col 1: Status + Location ── */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                         <div>
                             <div className="section-title">My Status</div>
@@ -169,7 +159,7 @@ export default function UserDashboard() {
                         </div>
                     </div>
 
-                    {/* ── Center: Panic Button + Status Stats ── */}
+                    {/* ── Col 2: Panic Button ── */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
                         <div className="card" style={{ width: '100%' }}>
                             <div className="section-title" style={{ textAlign: 'center' }}>Emergency Action</div>
@@ -191,7 +181,7 @@ export default function UserDashboard() {
                             </div>
                         </div>
 
-                        {/* Live Stats — real data */}
+                        {/* Live Stats */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
                             {[
                                 { label: 'My Status', value: activeStatus.charAt(0).toUpperCase() + activeStatus.slice(1), icon: Activity, color: activeStatus === 'safe' ? 'var(--accent-green)' : activeStatus === 'emergency' ? 'var(--accent-red)' : 'var(--accent-amber)' },
@@ -208,7 +198,7 @@ export default function UserDashboard() {
                         </div>
                     </div>
 
-                    {/* ── Right: My Alert History ── */}
+                    {/* ── Col 3: Alert History ── */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                         <div className="card" style={{ flex: 1 }}>
                             <div className="flex items-center gap-8 mb-16">

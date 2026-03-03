@@ -1,8 +1,13 @@
 /**
  * Central API fetch helper for PulseNet frontend.
- * Automatically attaches the JWT token from localStorage.
- * Usage: apiFetch('/api/auth/login', { method: 'POST', body: { email, password } })
+ * In development: relative /api/... paths are proxied by Vite to localhost:5000
+ * In production: VITE_API_URL must point to your deployed backend (e.g. https://pulsenet-api.onrender.com)
  */
+
+// Set in .env.local (dev) or Vercel env vars (prod)
+export const API_BASE = import.meta.env.VITE_API_URL || ''
+export const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`
+
 export async function apiFetch(path, options = {}) {
     const token = localStorage.getItem('token')
 
@@ -12,7 +17,7 @@ export async function apiFetch(path, options = {}) {
         ...(options.headers || {}),
     }
 
-    const res = await fetch(path, {
+    const res = await fetch(`${API_BASE}${path}`, {
         ...options,
         headers,
         body: options.body ? JSON.stringify(options.body) : undefined,

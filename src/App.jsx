@@ -5,7 +5,9 @@ import RegisterPage from './pages/RegisterPage'
 import UserDashboard from './pages/UserDashboard'
 import AdminCommandCenter from './pages/AdminCommandCenter'
 import EventManagement from './pages/EventManagement'
+import SuperAdminPanel from './pages/SuperAdminPanel'
 import Sidebar from './components/Sidebar'
+import BottomNav from './components/BottomNav'
 import { isLoggedIn, getTokenPayload } from './api'
 import './index.css'
 
@@ -16,18 +18,22 @@ function DashboardLayout({ children }) {
       <div className="main-area">
         {children}
       </div>
+      <BottomNav />
     </div>
   )
 }
 
-// Redirects to /login if not authenticated
-function ProtectedRoute({ children, adminOnly = false }) {
+function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }) {
   if (!isLoggedIn()) return <Navigate to="/login" replace />
-  if (adminOnly) {
-    const payload = getTokenPayload()
-    const isAdmin = payload?.role === 'admin' || payload?.role === 'superadmin'
-    if (!isAdmin) return <Navigate to="/dashboard" replace />
-  }
+  const payload = getTokenPayload()
+  const role = payload?.role
+
+  if (superAdminOnly && role !== 'superadmin')
+    return <Navigate to="/dashboard" replace />
+
+  if (adminOnly && role !== 'admin' && role !== 'superadmin')
+    return <Navigate to="/dashboard" replace />
+
   return children
 }
 
@@ -37,21 +43,31 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <DashboardLayout><UserDashboard /></DashboardLayout>
         </ProtectedRoute>
       } />
-      <Route path="/admin" element={
-        <ProtectedRoute adminOnly>
-          <AdminCommandCenter />
-        </ProtectedRoute>
-      } />
+
       <Route path="/events" element={
         <ProtectedRoute>
           <DashboardLayout><EventManagement /></DashboardLayout>
         </ProtectedRoute>
       } />
+
+      <Route path="/admin" element={
+        <ProtectedRoute adminOnly>
+          <AdminCommandCenter />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/superadmin" element={
+        <ProtectedRoute superAdminOnly>
+          <DashboardLayout><SuperAdminPanel /></DashboardLayout>
+        </ProtectedRoute>
+      } />
+
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )

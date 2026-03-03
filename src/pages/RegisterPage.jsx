@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Radio, Shield, Eye, EyeOff, Lock, Mail, User, Phone, CheckCircle, ArrowRight, Building } from 'lucide-react'
+import { Radio, Eye, EyeOff, Lock, Mail, User, Phone, CheckCircle, ArrowRight, Clock } from 'lucide-react'
 
 export default function RegisterPage() {
     const navigate = useNavigate()
     const [showPw, setShowPw] = useState(false)
-    const [role, setRole] = useState('user')
     const [step, setStep] = useState(1)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    const [registered, setRegistered] = useState(false)   // show pending screen
 
     // Form state
     const [firstName, setFirstName] = useState('')
@@ -17,6 +17,19 @@ export default function RegisterPage() {
     const [phone, setPhone] = useState('')
     const [password, setPassword] = useState('')
     const [organization, setOrganization] = useState('')
+
+    // ── Password strength (0–4) ───────────────────────────────────────────────
+    const pwStrength = (() => {
+        if (!password) return 0
+        let score = 0
+        if (password.length >= 8) score++
+        if (/[A-Z]/.test(password)) score++
+        if (/[0-9]/.test(password)) score++
+        if (/[^A-Za-z0-9]/.test(password)) score++
+        return score
+    })()
+    const pwLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'][pwStrength]
+    const pwColor = ['', 'var(--accent-red)', 'var(--accent-amber)', 'var(--accent-blue)', 'var(--accent-green)'][pwStrength]
 
     const handleRegister = async () => {
         setError('')
@@ -29,7 +42,7 @@ export default function RegisterPage() {
                     name: `${firstName} ${lastName}`.trim(),
                     email,
                     password,
-                    role,
+                    // role is always assigned server-side as 'user'
                 }),
             })
             const data = await res.json()
@@ -37,16 +50,38 @@ export default function RegisterPage() {
                 setError(data.message || 'Registration failed')
                 return
             }
-            // Auto-login: store token if returned, then navigate
-            if (data.token) {
-                localStorage.setItem('token', data.token)
-            }
-            navigate('/login')
+            // Show the pending approval screen
+            setRegistered(true)
         } catch {
             setError('Cannot connect to server. Is the backend running?')
         } finally {
             setLoading(false)
         }
+    }
+
+    // ── Pending approval success screen ──────────────────────────────────────────
+    if (registered) {
+        return (
+            <div className="auth-page">
+                <div className="auth-left" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                    <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--accent-amber-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                        <Clock size={32} color="var(--accent-amber)" />
+                    </div>
+                    <h1 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: 10 }}>Account Created!</h1>
+                    <p className="text-secondary" style={{ fontSize: '0.9rem', lineHeight: 1.7, maxWidth: 320, marginBottom: 24 }}>
+                        Your account is <strong style={{ color: 'var(--accent-amber)' }}>pending superadmin approval</strong>.
+                        You'll be able to sign in once an administrator approves your request.
+                    </p>
+                    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '14px 18px', marginBottom: 28, width: '100%', maxWidth: 320 }}>
+                        <div className="text-xs text-muted mb-4">Registered email</div>
+                        <div className="font-semibold" style={{ fontSize: '0.9rem' }}>{email}</div>
+                    </div>
+                    <button className="btn btn-primary" onClick={() => navigate('/login')} style={{ justifyContent: 'center', width: '100%', maxWidth: 320 }}>
+                        <ArrowRight size={16} /> Go to Sign In
+                    </button>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -77,7 +112,7 @@ export default function RegisterPage() {
                                     transition: 'all 0.3s ease'
                                 }}>{step > s ? <CheckCircle size={13} /> : s}</div>
                                 <span className="text-xs" style={{ color: step >= s ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: step >= s ? 600 : 400 }}>
-                                    {s === 1 ? 'Account Info' : 'Role & Access'}
+                                    {s === 1 ? 'Account Info' : 'Confirm & Submit'}
                                 </span>
                                 {s < 2 && <div style={{ flex: 1, height: 1, background: step > s ? 'var(--accent-blue)' : 'var(--border)', width: 40, transition: 'all 0.3s ease' }} />}
                             </div>
@@ -128,11 +163,15 @@ export default function RegisterPage() {
                                         {showPw ? <EyeOff size={13} /> : <Eye size={13} />}
                                     </button>
                                 </div>
-                                <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
-                                    {['var(--accent-red)', 'var(--accent-amber)', 'var(--accent-green)', 'var(--accent-green)'].map((c, i) => (
-                                        <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i < 2 ? c : 'var(--border)', transition: 'all 0.3s' }} />
+                                <div style={{ display: 'flex', gap: 4, marginTop: 6, alignItems: 'center' }}>
+                                    {[1, 2, 3, 4].map(i => (
+                                        <div key={i} style={{
+                                            flex: 1, height: 3, borderRadius: 2,
+                                            background: i <= pwStrength ? pwColor : 'var(--border)',
+                                            transition: 'all 0.3s'
+                                        }} />
                                     ))}
-                                    <span style={{ fontSize: '0.65rem', color: 'var(--accent-amber)', marginLeft: 4, whiteSpace: 'nowrap' }}>Fair</span>
+                                    {pwLabel && <span style={{ fontSize: '0.65rem', color: pwColor, marginLeft: 4, whiteSpace: 'nowrap' }}>{pwLabel}</span>}
                                 </div>
                             </div>
                             <button className="btn btn-primary btn-lg" style={{ justifyContent: 'center', marginTop: 4 }} onClick={() => setStep(2)}>
@@ -143,43 +182,16 @@ export default function RegisterPage() {
 
                     {step === 2 && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                            <div className="form-group">
-                                <label className="form-label">Account Role *</label>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                    {[
-                                        { k: 'user', icon: User, label: 'Field User', desc: 'Participant in events. Can share location and send alerts.', color: 'var(--accent-blue)', bg: 'var(--accent-blue-dim)' },
-                                        { k: 'admin', icon: Shield, label: 'Administrator', desc: 'Full command center access. Requires org-code verification.', color: 'var(--accent-red)', bg: 'var(--accent-red-dim)' },
-                                    ].map(({ k, icon: Icon, label, desc, color, bg }) => (
-                                        <div key={k} onClick={() => setRole(k)} style={{
-                                            border: `2px solid ${role === k ? color : 'var(--border)'}`,
-                                            background: role === k ? bg : 'var(--bg-card)',
-                                            borderRadius: 'var(--radius-md)', padding: '12px 14px',
-                                            cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 12,
-                                            transition: 'all var(--transition)'
-                                        }}>
-                                            <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-sm)', background: role === k ? bg : 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                                <Icon size={16} color={role === k ? color : 'var(--text-muted)'} />
-                                            </div>
-                                            <div>
-                                                <div className="font-semibold text-sm" style={{ color: role === k ? color : 'var(--text-primary)' }}>{label}</div>
-                                                <div className="text-xs text-muted" style={{ marginTop: 2 }}>{desc}</div>
-                                            </div>
-                                            {role === k && <CheckCircle size={16} color={color} style={{ marginLeft: 'auto', flexShrink: 0 }} />}
-                                        </div>
-                                    ))}
+                            {/* Account type info — users are always registered as Field Users */}
+                            <div className="card" style={{ background: 'var(--accent-blue-dim)', borderColor: 'rgba(59,130,246,0.3)', display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-sm)', background: 'var(--accent-blue-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <User size={16} color="var(--accent-blue)" />
+                                </div>
+                                <div>
+                                    <div className="font-semibold text-sm" style={{ color: 'var(--accent-blue)' }}>Field User Account</div>
+                                    <div className="text-xs text-muted" style={{ marginTop: 2 }}>Participant in events. Can share location and send alerts. Admins are promoted by org super-admins.</div>
                                 </div>
                             </div>
-
-                            {role === 'admin' && (
-                                <div className="form-group">
-                                    <label className="form-label">Organization Code *</label>
-                                    <div style={{ position: 'relative' }}>
-                                        <Building size={13} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                        <input className="form-input" placeholder="ORG-XXXX-XXXX" style={{ paddingLeft: 32, fontFamily: 'JetBrains Mono, monospace' }} />
-                                    </div>
-                                    <div className="text-xs text-muted" style={{ marginTop: 4 }}>Provided by your organization's super-admin</div>
-                                </div>
-                            )}
 
                             <div className="form-group">
                                 <label className="form-label">Organization / Team <span className="text-muted">(optional)</span></label>
@@ -196,7 +208,7 @@ export default function RegisterPage() {
                             <div className="flex items-center gap-10">
                                 <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(1)}>← Back</button>
                                 <button
-                                    className={`btn ${role === 'admin' ? 'btn-danger' : 'btn-success'}`}
+                                    className="btn btn-success"
                                     style={{ flex: 2, justifyContent: 'center', opacity: loading ? 0.7 : 1 }}
                                     onClick={handleRegister}
                                     disabled={loading}

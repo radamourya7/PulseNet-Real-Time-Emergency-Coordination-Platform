@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { apiFetch, getTokenPayload, logout, SOCKET_URL } from '../api'
 import {
     MapPin, Clock, AlertTriangle, CheckCircle, HelpCircle,
-    Activity, Bell, Navigation, Battery, Signal
+    Activity, Bell, Navigation, Battery, Signal, X
 } from 'lucide-react'
 import { io } from 'socket.io-client'
 
@@ -53,10 +53,11 @@ export default function UserDashboard() {
     const [panicActive, setPanicActive] = useState(false)
     const [coords, setCoords] = useState(null)
     const [myAlerts, setMyAlerts] = useState([])
-    const [activeAlertCount, setActiveAlertCount] = useState(0)
+    const [resolvedToast, setResolvedToast] = useState(null) // { alertId, message }
     const socketRef = useRef(null)
     const user = getTokenPayload()
 
+    // ── GPS watch ──────────────────────────────────────────────────────────────
     useEffect(() => {
         if (!navigator.geolocation) return
         const watchId = navigator.geolocation.watchPosition(
@@ -70,15 +71,36 @@ export default function UserDashboard() {
         return () => navigator.geolocation.clearWatch(watchId)
     }, [])
 
+    // ── Load own alert history on mount ────────────────────────────────────────
+    useEffect(() => {
+        apiFetch('/api/alerts/mine')
+            .then(setMyAlerts)
+            .catch(console.error)
+    }, [])
+
+    // ── Socket.IO — join user room + listen for resolve notification ───────────
     useEffect(() => {
         socketRef.current = io(SOCKET_URL, { transports: ['websocket'] })
-        socketRef.current.on('new-alert', () => setActiveAlertCount(c => c + 1))
-        socketRef.current.on('alert-updated', (a) => {
-            if (a.status === 'resolved') setActiveAlertCount(c => Math.max(0, c - 1))
+
+        const token = localStorage.getItem('token')
+        socketRef.current.on('connect', () => {
+            // Join personal user room to receive targeted events
+            socketRef.current.emit('join-user-room', token)
         })
+
+        // Admin resolved our alert → update badge in history + show toast
+        socketRef.current.on('alert-resolved', (resolved) => {
+            setMyAlerts(prev =>
+                prev.map(a => a._id === resolved._id ? { ...a, status: 'resolved' } : a)
+            )
+            setResolvedToast({ alertId: resolved._id, message: '✅ Your alert has been resolved by admin' })
+            setTimeout(() => setResolvedToast(null), 5000)
+        })
+
         return () => socketRef.current?.disconnect()
     }, [])
 
+    // ── Panic SOS ──────────────────────────────────────────────────────────────
     const handlePanic = async () => {
         setPanicActive(true)
         setActiveStatus('emergency')
@@ -99,9 +121,29 @@ export default function UserDashboard() {
         return `${Math.floor(mins / 60)} hr ago`
     }
 
+    const pendingCount = myAlerts.filter(a => a.status !== 'resolved').length
+
     return (
         <>
             <Topbar user={user} gpsActive={locationSharing} />
+
+            {/* ── Resolve Toast ─────────────────────────────────────────── */}
+            {resolvedToast && (
+                <div style={{
+                    position: 'fixed', top: 72, left: '50%', transform: 'translateX(-50%)',
+                    zIndex: 9999, background: 'var(--accent-green)', color: '#fff',
+                    padding: '12px 24px', borderRadius: 'var(--radius-md)',
+                    fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 10,
+                    boxShadow: '0 8px 32px rgba(34,197,94,0.4)', animation: 'anim-fade-up 0.3s ease',
+                }}>
+                    <CheckCircle size={16} />
+                    {resolvedToast.message}
+                    <button onClick={() => setResolvedToast(null)} style={{ background: 'none', color: '#fff', marginLeft: 8, display: 'flex' }}>
+                        <X size={14} />
+                    </button>
+                </div>
+            )}
+
             <div className="content-area">
                 <div className="dashboard-grid">
 
@@ -152,14 +194,14 @@ export default function UserDashboard() {
                             </div>
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                                 {coords
-                                    ? <>📍 {coords.lat.toFixed(5)}° N, {coords.lng.toFixed(5)}° E<br />
+                                    ? <>{`📍 ${coords.lat.toFixed(5)}° N, ${coords.lng.toFixed(5)}° E`}<br />
                                         <span style={{ marginLeft: 16 }}>Accuracy: ±{Math.round(coords.acc)}m</span></>
                                     : '📍 Acquiring GPS signal...'}
                             </div>
                         </div>
                     </div>
 
-                    {/* ── Col 2: Panic Button ── */}
+                    {/* ── Col 2: Panic Button + Live Stats ── */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
                         <div className="card" style={{ width: '100%' }}>
                             <div className="section-title" style={{ textAlign: 'center' }}>Emergency Action</div>
@@ -187,7 +229,7 @@ export default function UserDashboard() {
                                 { label: 'My Status', value: activeStatus.charAt(0).toUpperCase() + activeStatus.slice(1), icon: Activity, color: activeStatus === 'safe' ? 'var(--accent-green)' : activeStatus === 'emergency' ? 'var(--accent-red)' : 'var(--accent-amber)' },
                                 { label: 'Alerts Sent', value: myAlerts.length, icon: Bell, color: 'var(--accent-red)' },
                                 { label: 'GPS', value: locationSharing ? 'Live' : 'Off', icon: MapPin, color: locationSharing ? 'var(--accent-blue)' : 'var(--text-muted)' },
-                                { label: 'Active Alerts', value: activeAlertCount, icon: AlertTriangle, color: 'var(--accent-amber)' },
+                                { label: 'Pending', value: pendingCount, icon: AlertTriangle, color: pendingCount > 0 ? 'var(--accent-amber)' : 'var(--accent-green)' },
                             ].map(({ label, value, icon: Icon, color }) => (
                                 <div key={label} className="card card-sm" style={{ textAlign: 'center' }}>
                                     <Icon size={16} color={color} style={{ margin: '0 auto 6px' }} />
@@ -203,6 +245,11 @@ export default function UserDashboard() {
                         <div className="card" style={{ flex: 1 }}>
                             <div className="flex items-center gap-8 mb-16">
                                 <div className="section-title" style={{ marginBottom: 0 }}>My Alert History</div>
+                                {myAlerts.length > 0 && (
+                                    <span className="badge badge-blue" style={{ marginLeft: 'auto', fontSize: '0.6rem' }}>
+                                        {myAlerts.length} total
+                                    </span>
+                                )}
                             </div>
                             {myAlerts.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
@@ -211,8 +258,10 @@ export default function UserDashboard() {
                                 </div>
                             ) : myAlerts.map((alert, i) => (
                                 <div key={alert._id || i} className="timeline-item">
-                                    <div className="timeline-dot" style={{ background: 'var(--accent-red-dim)' }}>
-                                        <AlertTriangle size={13} color="var(--accent-red)" />
+                                    <div className="timeline-dot" style={{ background: alert.status === 'resolved' ? 'var(--accent-green-dim, #16a34a22)' : 'var(--accent-red-dim)' }}>
+                                        {alert.status === 'resolved'
+                                            ? <CheckCircle size={13} color="var(--accent-green)" />
+                                            : <AlertTriangle size={13} color="var(--accent-red)" />}
                                     </div>
                                     <div style={{ paddingTop: 4 }}>
                                         <div className="text-sm font-medium capitalize">{alert.type} alert sent</div>

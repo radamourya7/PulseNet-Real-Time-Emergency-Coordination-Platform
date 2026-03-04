@@ -1304,6 +1304,7 @@ button {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 .command-topbar {

@@ -60,6 +60,17 @@ io.on("connection", (socket) => {
         }
     });
 
+    // Any authenticated user joins their personal room to receive resolve notifications
+    socket.on("join-user-room", (token) => {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            socket.join(`user:${decoded.id}`);
+            console.log(`🏠 User ${decoded.id} joined room user:${decoded.id}`);
+        } catch {
+            console.warn("join-user-room: invalid token");
+        }
+    });
+
     socket.on("disconnect", () => {
         console.log(`✂️  Socket disconnected: ${socket.id}`);
     });

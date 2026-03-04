@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import {
     Radio, Bell, Filter, Search, Shield,
     CheckCircle, MapPin, Clock, User, ChevronRight,
-    Layers, Navigation, X, RefreshCw, Activity, LogOut, AlertTriangle
+    Layers, Navigation, X, RefreshCw, Activity, LogOut, AlertTriangle, Send
 } from 'lucide-react'
 import { io } from 'socket.io-client'
 import L from 'leaflet'
@@ -57,21 +57,37 @@ function SeverityBadge({ sev }) {
 
 // ── LeafletMap ────────────────────────────────────────────────────────────────
 
-function LeafletMap({ alerts, selectedId, onSelectAlert }) {
+const TILES = {
+    dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+}
+
+function LeafletMap({ alerts, selectedId, onSelectAlert, tileStyle, mapApiRef }) {
     const containerRef = useRef(null)
     const mapRef = useRef(null)
+    const tileLayerRef = useRef(null)
     const markersRef = useRef({})
+
+    // Expose map ref to parent
+    useEffect(() => { if (mapApiRef) mapApiRef.current = { mapRef, tileLayerRef } }, [])
 
     // Initialise map once
     useEffect(() => {
         if (mapRef.current || !containerRef.current) return
         mapRef.current = L.map(containerRef.current, { center: [28.6139, 77.2090], zoom: 13, zoomControl: false })
         L.control.zoom({ position: 'topright' }).addTo(mapRef.current)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        tileLayerRef.current = L.tileLayer(TILES.dark, {
             attribution: '© OpenStreetMap © CARTO', maxZoom: 19,
         }).addTo(mapRef.current)
         return () => { mapRef.current?.remove(); mapRef.current = null }
     }, [])
+
+    // Switch tile layer when tileStyle changes
+    useEffect(() => {
+        const map = mapRef.current
+        if (!map || !tileLayerRef.current) return
+        tileLayerRef.current.setUrl(TILES[tileStyle] || TILES.dark)
+    }, [tileStyle])
 
     // Sync markers whenever alerts change
     useEffect(() => {
@@ -179,7 +195,11 @@ export default function AdminCommandCenter() {
     const [filter, setFilter] = useState('all')
     const [search, setSearch] = useState('')
     const [loading, setLoading] = useState(true)
+    const [tileStyle, setTileStyle] = useState('dark')
+    const [showBroadcast, setShowBroadcast] = useState(false)
+    const [broadcastMsg, setBroadcastMsg] = useState('')
     const socketRef = useRef(null)
+    const mapApiRef = useRef(null)
     const user = getTokenPayload()
     const isSuperAdmin = user?.role === 'superadmin'
 
@@ -214,6 +234,24 @@ export default function AdminCommandCenter() {
     }
 
     const handleSelectAlert = useCallback(a => setSelectedAlert(a), [])
+
+    const handleToggleTile = () => setTileStyle(s => s === 'dark' ? 'light' : 'dark')
+
+    const handleNavToLatest = () => {
+        const map = mapApiRef.current?.mapRef?.current
+        if (!map) return
+        const crit = alerts.find(a => alertToSeverity(a) === 'crit')
+        if (crit?.location?.lat) {
+            map.flyTo([crit.location.lat, crit.location.lng], 15, { duration: 1 })
+        }
+    }
+
+    const handleBroadcast = () => {
+        if (!broadcastMsg.trim()) return
+        socketRef.current?.emit('broadcast-message', { message: broadcastMsg, from: user?.name || 'Admin' })
+        setBroadcastMsg('')
+        setShowBroadcast(false)
+    }
 
     // Filter + search
     const filtered = alerts.filter(a => {
@@ -331,12 +369,39 @@ export default function AdminCommandCenter() {
                             <span className="text-xs" style={{ color: 'var(--accent-amber)', fontWeight: 600 }}>Super Admin</span>
                         </div>
                     )}
-                    <button className="btn btn-danger btn-sm"><Bell size={13} /> Broadcast</button>
-                    <button className="btn btn-ghost btn-sm"><Layers size={13} /></button>
-                    <button className="btn btn-ghost btn-sm"><Navigation size={13} /></button>
+                    <button className="btn btn-danger btn-sm" onClick={() => setShowBroadcast(v => !v)}><Bell size={13} /> Broadcast</button>
+                    <button className="btn btn-ghost btn-sm" title={`Switch to ${tileStyle === 'dark' ? 'light' : 'dark'} map`} onClick={handleToggleTile}><Layers size={13} /></button>
+                    <button className="btn btn-ghost btn-sm" title="Jump to latest critical alert" onClick={handleNavToLatest}><Navigation size={13} /></button>
                 </div>
+
+                {/* Broadcast modal */}
+                {showBroadcast && (
+                    <div style={{
+                        position: 'absolute', top: 48, right: 12, zIndex: 500, width: 280,
+                        background: 'var(--bg-card)', border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-md)', padding: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                    }}>
+                        <div className="flex items-center gap-8 mb-12">
+                            <Bell size={14} color="var(--accent-red)" />
+                            <span className="font-semibold text-sm">Broadcast Message</span>
+                            <button onClick={() => setShowBroadcast(false)} style={{ marginLeft: 'auto', background: 'none', color: 'var(--text-muted)', display: 'flex' }}><X size={14} /></button>
+                        </div>
+                        <textarea
+                            className="form-input"
+                            rows={3}
+                            placeholder="Type your broadcast message..."
+                            value={broadcastMsg}
+                            onChange={e => setBroadcastMsg(e.target.value)}
+                            style={{ width: '100%', resize: 'none', fontSize: '0.8rem', marginBottom: 10 }}
+                        />
+                        <button className="btn btn-danger" style={{ width: '100%', justifyContent: 'center' }} onClick={handleBroadcast}>
+                            <Send size={13} /> Send to All Users
+                        </button>
+                    </div>
+                )}
+
                 <div className="command-map">
-                    <LeafletMap alerts={alerts} selectedId={selectedAlert?._id} onSelectAlert={handleSelectAlert} />
+                    <LeafletMap alerts={alerts} selectedId={selectedAlert?._id} onSelectAlert={handleSelectAlert} tileStyle={tileStyle} mapApiRef={mapApiRef} />
                 </div>
             </div>
 

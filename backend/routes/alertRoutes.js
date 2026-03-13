@@ -42,6 +42,17 @@ router.post("/", protect, async (req, res) => {
     }
 });
 
+// ── GET /api/alerts/mine — user's own alerts (no admin required) ─────────────
+router.get("/mine", protect, async (req, res) => {
+    try {
+        const alerts = await Alert.find({ user: req.user.id })
+            .sort({ createdAt: -1 });
+        res.json(alerts);
+    } catch (err) {
+        res.status(500).json({ message: "Failed to fetch alerts", error: err.message });
+    }
+});
+
 // ── GET /api/alerts ───────────────────────────────────────────────────────────
 router.get("/", protect, requireAdmin, async (req, res) => {
     try {
@@ -89,10 +100,17 @@ router.patch("/:id", protect, requireAdmin, async (req, res) => {
 
         const io = req.app.get("io");
         if (io) {
+            // Notify admin sidebar
             if (updated.assignedAdmin) {
                 io.to(`admin:${updated.assignedAdmin}`).emit("alert-updated", updated);
             } else {
                 io.emit("alert-updated", updated);
+            }
+            // Also always notify superadmin
+            io.to("superadmin-room").emit("alert-updated", updated);
+            // Notify the user who sent the alert
+            if (status === "resolved" && updated.user) {
+                io.to(`user:${updated.user}`).emit("alert-resolved", updated);
             }
         }
 

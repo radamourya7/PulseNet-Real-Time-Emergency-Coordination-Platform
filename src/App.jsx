@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import UserDashboard from './pages/UserDashboard'
 import AdminCommandCenter from './pages/AdminCommandCenter'
+import AdminDashboard from './pages/AdminDashboard'
 import EventManagement from './pages/EventManagement'
 import SuperAdminPanel from './pages/SuperAdminPanel'
 import Sidebar from './components/Sidebar'
@@ -59,6 +60,12 @@ export default function App() {
       <Route path="/admin" element={
         <ProtectedRoute adminOnly>
           <AdminCommandCenter />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin-dashboard" element={
+        <ProtectedRoute adminOnly>
+          <AdminDashboard />
         </ProtectedRoute>
       } />
 

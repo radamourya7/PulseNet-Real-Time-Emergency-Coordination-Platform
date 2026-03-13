@@ -17,6 +17,7 @@ export default function Sidebar() {
     const navItems = [
         { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         ...(isAdmin ? [{ to: '/admin', icon: Map, label: 'Command Center' }] : []),
+        ...(isAdmin ? [{ to: '/admin-dashboard', icon: Shield, label: 'Admin Dashboard' }] : []),
         { to: '/events', icon: Calendar, label: 'Events' },
     ]
 

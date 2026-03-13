@@ -8,8 +8,9 @@ const router = express.Router();
 
 // ── POST /api/alerts — any approved user can send a panic alert ───────────────
 router.post("/", protect, async (req, res) => {
+    console.log(`📥 POST /api/alerts - Req size: ${JSON.stringify(req.body).length} bytes`);
     try {
-        const { lat, lng, type } = req.body;
+        const { lat, lng, type, evidence } = req.body;
 
         // Look up the user's assigned admin
         const userDoc = await User.findById(req.user.id).select("assignedAdmin");
@@ -20,6 +21,7 @@ router.post("/", protect, async (req, res) => {
             type: type || "panic",
             location: { lat: lat || 0, lng: lng || 0 },
             assignedAdmin,
+            evidence: evidence || [],
         });
 
         await alert.populate("user", "name email role");
@@ -27,13 +29,9 @@ router.post("/", protect, async (req, res) => {
         const io = req.app.get("io");
         if (io) {
             if (assignedAdmin) {
-                // Emit only to assigned admin's room
                 io.to(`admin:${assignedAdmin}`).emit("new-alert", alert);
-                // Also notify superadmin so they see everything
                 io.to("superadmin-room").emit("new-alert", alert);
             } else {
-                // No admin assigned — broadcast to ALL connected sockets
-                // so the alert is not lost
                 io.emit("new-alert", alert);
             }
         }

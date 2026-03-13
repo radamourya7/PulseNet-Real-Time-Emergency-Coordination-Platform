@@ -5,11 +5,23 @@
  */
 
 // Set in .env.local (dev) or Vercel env vars (prod)
-export const API_BASE = import.meta.env.VITE_API_URL || ''
-export const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`
+// In DEV: We point directly to port 5005 to avoid port 5000 conflicts and Vite proxy limits
+// We prioritize the direct port in DEV even if VITE_API_URL is set to /api
+export const API_BASE = import.meta.env.DEV
+    ? `${window.location.protocol}//${window.location.hostname}:5005`
+    : (import.meta.env.VITE_API_URL || '')
+
+export const SOCKET_URL = import.meta.env.DEV
+    ? `${window.location.protocol}//${window.location.hostname}:5005`
+    : (import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:5005`)
 
 export async function apiFetch(path, options = {}) {
     const token = localStorage.getItem('token')
+    const url = path.startsWith('http') ? path : `${API_BASE}${path}`
+
+    if (import.meta.env.DEV) {
+        console.log(`📡 [API Call] ${options.method || 'GET'} ${url}`)
+    }
 
     const headers = {
         'Content-Type': 'application/json',
@@ -17,19 +29,28 @@ export async function apiFetch(path, options = {}) {
         ...(options.headers || {}),
     }
 
-    const res = await fetch(`${API_BASE}${path}`, {
-        ...options,
-        headers,
-        body: options.body ? JSON.stringify(options.body) : undefined,
-    })
+    try {
+        const res = await fetch(url, {
+            ...options,
+            headers,
+            mode: 'cors',
+            body: options.body ? JSON.stringify(options.body) : undefined,
+        })
 
-    const data = await res.json()
-
-    if (!res.ok) {
-        throw new Error(data.message || `Request failed: ${res.status}`)
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.message || `Request failed: ${res.status}`)
+            return data
+        } else {
+            const text = await res.text()
+            console.error('❌ Server returned non-JSON response:', text.substring(0, 200))
+            throw new Error(`Server error (${res.status}): Expected JSON but received ${contentType || 'text'}. Check server logs.`)
+        }
+    } catch (err) {
+        console.error('🌐 Fetch Error:', err)
+        throw err
     }
-
-    return data
 }
 
 /**

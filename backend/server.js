@@ -10,6 +10,12 @@ require("dotenv").config();
 const app = express();
 const server = http.createServer(app);
 
+// ── Debug Logger ──────────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+    if (req.path !== '/') console.log(`🕗 [${new Date().toLocaleTimeString()}] ${req.method} ${req.path}`);
+    next();
+});
+
 // ── CORS ──────────────────────────────────────────────────────────────────────
 // In production: set CORS_ORIGIN env var to your Vercel frontend URL.
 // e.g. CORS_ORIGIN=https://pulsenet.vercel.app
@@ -38,7 +44,10 @@ const corsOptions = {
 };
 
 // ── Socket.IO ─────────────────────────────────────────────────────────────────
-const io = new Server(server, { cors: corsOptions });
+const io = new Server(server, {
+    cors: corsOptions,
+    maxHttpBufferSize: 5e7 // 50MB
+});
 app.set("io", io);
 
 io.on("connection", (socket) => {
@@ -60,6 +69,27 @@ io.on("connection", (socket) => {
         }
     });
 
+    // Any authenticated user joins their personal room to receive resolve notifications
+    socket.on("join-user-room", (token) => {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            socket.join(`user:${decoded.id}`);
+            console.log(`🏠 User ${decoded.id} joined room user:${decoded.id}`);
+        } catch {
+            console.warn("join-user-room: invalid token");
+        }
+    });
+
+    // Broadcast message handler
+    socket.on("broadcast-message", (data) => {
+        // data = { message, type, from }
+        io.emit("system-broadcast", {
+            ...data,
+            timestamp: new Date().toISOString()
+        });
+        console.log(`📡 Broadcast sent by ${data.from || "Admin"}: ${data.message.substring(0, 20)}...`);
+    });
+
     socket.on("disconnect", () => {
         console.log(`✂️  Socket disconnected: ${socket.id}`);
     });
@@ -67,7 +97,8 @@ io.on("connection", (socket) => {
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '100mb' })); // Even higher!
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 // Database + seed superadmin
 connectDB().then(() => seedSuperAdmin());
@@ -77,10 +108,20 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/alerts", require("./routes/alertRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 
+app.get("/api/ping", (req, res) => res.json({ status: "ok", message: "PulseNet Backend Reachable", port: 5005 }));
 app.get("/", (req, res) => res.json({ status: "ok", message: "PulseNet API Running" }));
 
+// ── Global Error Handler ──────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+    console.error("❌ Server Error:", err.stack);
+    res.status(err.status || 500).json({
+        message: err.message || "Internal Server Error",
+        error: process.env.NODE_ENV === "production" ? {} : err
+    });
+});
+
 // ── Listen ────────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
+const PORT = 5005;
 server.listen(PORT, "0.0.0.0", () => {
     console.log(`\n🚀 PulseNet backend on http://0.0.0.0:${PORT}`);
     if (process.env.NODE_ENV !== "production") {

@@ -64,6 +64,13 @@ export default function LandingPage() {
                     <div>
                         <div className="logo-text">PulseNet</div>
                     </div>
+                    <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ marginLeft: '12px' }}
+                        onClick={() => navigate('/about')}
+                    >
+                        About Us
+                    </button>
                 </div>
                 <div className="flex items-center gap-8">
                     <div className="flex items-center gap-8 hide-mobile">
@@ -142,7 +149,15 @@ export default function LandingPage() {
                     <Lock size={12} color="var(--text-muted)" />
                     <span className="text-xs text-muted">End-to-end encrypted · SOC 2 Type II · GDPR compliant</span>
                 </div>
-                <span className="text-xs text-muted">© 2026 PulseNet Systems. All rights reserved.</span>
+                <div className="flex items-center gap-8">
+                    <span
+                        className="text-xs text-muted cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => navigate('/about')}
+                    >
+                        About Developer
+                    </span>
+                    <span className="text-xs text-muted">© 2026 PulseNet Systems. All rights reserved.</span>
+                </div>
             </div>
         </div>
     )

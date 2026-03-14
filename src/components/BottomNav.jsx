@@ -19,6 +19,11 @@ export default function BottomNav() {
                 <span>Events</span>
             </NavLink>
 
+            <NavLink to="/about" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
+                <Radio size={20} />
+                <span>About</span>
+            </NavLink>
+
             {isAdmin && (
                 <NavLink to="/admin" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
                     <Map size={20} />

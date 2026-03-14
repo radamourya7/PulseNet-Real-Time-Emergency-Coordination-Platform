@@ -7,6 +7,7 @@ import AdminCommandCenter from './pages/AdminCommandCenter'
 import AdminDashboard from './pages/AdminDashboard'
 import EventManagement from './pages/EventManagement'
 import SuperAdminPanel from './pages/SuperAdminPanel'
+import AboutUs from './pages/AboutUs'
 import Sidebar from './components/Sidebar'
 import BottomNav from './components/BottomNav'
 import { isLoggedIn, getTokenPayload } from './api'
@@ -44,6 +45,7 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/about" element={<AboutUs />} />
 
       <Route path="/dashboard" element={
         <ProtectedRoute>

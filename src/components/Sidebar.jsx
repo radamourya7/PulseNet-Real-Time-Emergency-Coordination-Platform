@@ -19,6 +19,7 @@ export default function Sidebar() {
         ...(isAdmin ? [{ to: '/admin', icon: Map, label: 'Command Center' }] : []),
         ...(isAdmin ? [{ to: '/admin-dashboard', icon: Shield, label: 'Admin Dashboard' }] : []),
         { to: '/events', icon: Calendar, label: 'Events' },
+        { to: '/about', icon: Radio, label: 'About PulseNet' },
     ]
 
     return (

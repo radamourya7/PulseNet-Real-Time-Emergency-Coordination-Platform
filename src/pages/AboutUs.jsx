@@ -266,7 +266,7 @@ const AboutUs = () => {
                 {/* Bottom CTA */}
                 <div style={{ textAlign: 'center', marginTop: '80px' }}>
                     <button
-                        onClick={() => navigate('/register')}
+                        onClick={() => navigate('/join-dev')}
                         className="btn btn-primary btn-lg"
                         style={{ width: '100%', maxWidth: '300px' }}
                     >

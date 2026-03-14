@@ -8,6 +8,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import EventManagement from './pages/EventManagement'
 import SuperAdminPanel from './pages/SuperAdminPanel'
 import AboutUs from './pages/AboutUs'
+import JoinDevTeam from './pages/JoinDevTeam'
 import Sidebar from './components/Sidebar'
 import BottomNav from './components/BottomNav'
 import { isLoggedIn, getTokenPayload } from './api'
@@ -46,6 +47,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/about" element={<AboutUs />} />
+      <Route path="/join-dev" element={<JoinDevTeam />} />
 
       <Route path="/dashboard" element={
         <ProtectedRoute>

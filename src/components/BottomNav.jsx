@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Map, Calendar, LogOut, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, Map, Calendar, LogOut, ShieldCheck, Radio } from 'lucide-react'
 import { getTokenPayload, logout } from '../api'
 
 export default function BottomNav() {

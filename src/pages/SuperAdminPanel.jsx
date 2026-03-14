@@ -30,21 +30,28 @@ function CreateAdminModal({ onClose, onCreated }) {
     }
 
     return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
-            <div className="card" style={{ width: '100%', maxWidth: 480, borderColor: 'var(--border-bright)', borderRadius: '20px 20px 0 0', padding: '24px 20px 40px' }}>
-                <div style={{ width: 36, height: 4, background: 'var(--border-bright)', borderRadius: 99, margin: '0 auto 20px' }} />
-                <div className="flex items-center gap-12 mb-20">
-                    <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-md)', background: 'var(--accent-red-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <UserPlus size={16} color="var(--accent-red)" />
-                    </div>
-                    <div className="font-bold">Create Account</div>
-                    <button onClick={onClose} style={{ marginLeft: 'auto', background: 'none', color: 'var(--text-muted)', fontSize: '1.1rem', cursor: 'pointer' }}>✕</button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
+            <div className="card" style={{ width: '100%', maxWidth: 480, padding: '24px' }}>
+                <div className="flex items-center justify-between mb-20">
+                    <h2 className="text-xl font-bold">Create New User</h2>
+                    <button onClick={onClose} style={{ background: 'none', color: 'var(--text-muted)', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                 </div>
+
                 {error && <div style={{ background: 'var(--accent-red-dim)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 'var(--radius-md)', padding: '10px 14px', marginBottom: 16, color: 'var(--accent-red)', fontSize: '0.8rem' }}>⚠️ {error}</div>}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <div className="form-group"><label className="form-label">Full Name</label><input className="form-input" placeholder="John Doe" value={form.name} onChange={e => set('name', e.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="admin@org.com" value={form.email} onChange={e => set('email', e.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">Password</label><input className="form-input" type="password" placeholder="Min. 8 characters" value={form.password} onChange={e => set('password', e.target.value)} /></div>
+
+                <div className="flex flex-col gap-12">
+                    <div className="form-group">
+                        <label className="form-label">Full Name</label>
+                        <input className="form-input" placeholder="Enter name" value={form.name} onChange={e => set('name', e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Email Address</label>
+                        <input className="form-input" type="email" placeholder="email@example.com" value={form.email} onChange={e => set('email', e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Password</label>
+                        <input className="form-input" type="password" placeholder="Min. 8 characters" value={form.password} onChange={e => set('password', e.target.value)} />
+                    </div>
                     <div className="form-group">
                         <label className="form-label">Role</label>
                         <select className="form-input" style={{ padding: '10px 14px' }} value={form.role} onChange={e => set('role', e.target.value)}>
@@ -52,10 +59,11 @@ function CreateAdminModal({ onClose, onCreated }) {
                             <option value="user">User</option>
                         </select>
                     </div>
-                    <div className="flex items-center gap-10" style={{ marginTop: 4 }}>
-                        <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={onClose}>Cancel</button>
-                        <button className="btn btn-danger" style={{ flex: 2, justifyContent: 'center', opacity: loading ? 0.7 : 1 }} onClick={handleCreate} disabled={loading}>
-                            <UserPlus size={14} /> {loading ? 'Creating...' : 'Create Account'}
+
+                    <div className="flex items-center gap-10 mt-12">
+                        <button className="btn btn-ghost flex-1" onClick={onClose}>Cancel</button>
+                        <button className="btn btn-danger flex-1" onClick={handleCreate} disabled={loading}>
+                            {loading ? 'Processing...' : 'Create Account'}
                         </button>
                     </div>
                 </div>
@@ -136,17 +144,19 @@ export default function SuperAdminPanel() {
             <div className="topbar">
                 <div className="flex items-center gap-10">
                     <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', background: 'var(--accent-red-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Shield size={15} color="var(--accent-red)" />
+                        <Shield size={16} color="var(--accent-red)" />
                     </div>
                     <div>
-                        <div className="font-semibold" style={{ fontSize: '0.95rem' }}>Super Admin Panel</div>
-                        <div className="text-xs text-secondary hide-mobile">User management &amp; admin assignments</div>
+                        <div className="font-bold">Super Admin Panel</div>
+                        <div className="text-xs text-muted">Manage system users and assignments</div>
                     </div>
-                    {pendingCount > 0 && <span className="badge badge-red" style={{ marginLeft: 4 }}>{pendingCount} pending</span>}
+                    {pendingCount > 0 && <span className="badge badge-red" style={{ marginLeft: 8 }}>{pendingCount} PENDING</span>}
                 </div>
                 <div className="flex items-center gap-10 ml-auto">
-                    <button className="btn btn-ghost btn-sm" onClick={fetchAll}><RefreshCw size={13} /></button>
-                    <button className="btn btn-danger btn-sm" onClick={() => setShowCreate(true)}><UserPlus size={13} /> <span className="hide-mobile">Create Account</span></button>
+                    <button className="btn btn-ghost btn-sm" onClick={fetchAll} title="Refresh Data"><RefreshCw size={14} /></button>
+                    <button className="btn btn-danger btn-sm" onClick={() => setShowCreate(true)}>
+                        <UserPlus size={14} /> <span className="hide-mobile">CREATE USER</span>
+                    </button>
                     <button className="btn btn-ghost btn-sm" onClick={logout}>Logout</button>
                 </div>
             </div>
@@ -155,10 +165,10 @@ export default function SuperAdminPanel() {
                 {/* Stats */}
                 <div className="grid-4 mb-24">
                     {[
-                        { label: 'Pending', value: users.filter(u => u.status === 'pending').length, color: 'var(--accent-amber)', bg: 'var(--accent-amber-dim)', icon: Clock },
-                        { label: 'Approved', value: users.filter(u => effectiveStatus(u) === 'approved').length, color: 'var(--accent-green)', bg: 'var(--accent-green-dim)', icon: CheckCircle },
+                        { label: 'Pending Users', value: users.filter(u => u.status === 'pending').length, color: 'var(--accent-amber)', bg: 'var(--accent-amber-dim)', icon: Clock },
+                        { label: 'Approved Users', value: users.filter(u => effectiveStatus(u) === 'approved').length, color: 'var(--accent-green)', bg: 'var(--accent-green-dim)', icon: CheckCircle },
                         { label: 'Admins', value: users.filter(u => u.role === 'admin').length, color: 'var(--accent-red)', bg: 'var(--accent-red-dim)', icon: Shield },
-                        { label: 'Total', value: users.length, color: 'var(--accent-blue)', bg: 'var(--accent-blue-dim)', icon: Users },
+                        { label: 'Total Users', value: users.length, color: 'var(--accent-blue)', bg: 'var(--accent-blue-dim)', icon: Users },
                     ].map(({ label, value, color, bg, icon: Icon }) => (
                         <div key={label} className="card" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                             <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -192,12 +202,12 @@ export default function SuperAdminPanel() {
                 {/* User list */}
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
-                        <RefreshCw size={20} style={{ margin: '0 auto 8px', display: 'block' }} />Loading...
+                        <RefreshCw size={20} style={{ margin: '0 auto 8px', display: 'block', animation: 'spin 2s linear infinite' }} />Loading Users...
                     </div>
                 ) : filtered.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
                         <CheckCircle size={24} style={{ margin: '0 auto 8px', display: 'block' }} color="var(--accent-green)" />
-                        No {filter === 'all' ? '' : filter} users
+                        No members found in this category
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -205,9 +215,8 @@ export default function SuperAdminPanel() {
                             <div key={u._id} className="card" style={{
                                 borderColor: effectiveStatus(u) === 'pending' ? 'rgba(245,158,11,0.3)' : effectiveStatus(u) === 'rejected' ? 'rgba(239,68,68,0.2)' : 'var(--border)'
                             }}>
-                                {/* Top row: avatar + info + status/role badges */}
                                 <div className="flex items-center gap-12" style={{ flexWrap: 'wrap' }}>
-                                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: u.role === 'admin' ? 'var(--accent-red-dim)' : 'var(--accent-blue-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '1rem', fontWeight: 700, color: u.role === 'admin' ? 'var(--accent-red)' : 'var(--accent-blue)' }}>
+                                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: u.role === 'admin' ? 'var(--accent-red-dim)' : 'var(--accent-blue-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '1rem', fontBold: true, color: u.role === 'admin' ? 'var(--accent-red)' : 'var(--accent-blue)' }}>
                                         {u.name?.[0]?.toUpperCase() || '?'}
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -223,19 +232,7 @@ export default function SuperAdminPanel() {
                                         </div>
                                     </div>
 
-                                    {/* Action buttons */}
-                                    <div className="flex items-center gap-8" style={{ flexShrink: 0, flexWrap: 'wrap' }}>
-                                        {/* Role toggle */}
-                                        <button
-                                            className={`btn btn-sm ${u.role === 'admin' ? 'btn-ghost' : 'btn-primary'}`}
-                                            onClick={() => toggleRole(u)}
-                                            title={u.role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
-                                        >
-                                            <Shield size={12} />
-                                            {u.role === 'admin' ? '→ User' : '→ Admin'}
-                                        </button>
-
-                                        {/* Approve/reject */}
+                                    <div className="flex items-center gap-8">
                                         {effectiveStatus(u) === 'pending' && <>
                                             <button className="btn btn-success btn-sm" onClick={() => approve(u._id)}><CheckCircle size={12} /> Approve</button>
                                             <button className="btn btn-danger btn-sm" onClick={() => reject(u._id)}><XCircle size={12} /> Reject</button>
@@ -247,14 +244,16 @@ export default function SuperAdminPanel() {
                                             <button className="btn btn-success btn-sm" onClick={() => approve(u._id)}><CheckCircle size={12} /> Re-approve</button>
                                         )}
 
-                                        {/* Delete */}
+                                        <button className={`btn btn-sm ${u.role === 'admin' ? 'btn-ghost' : 'btn-primary'}`} onClick={() => toggleRole(u)}>
+                                            <Shield size={12} /> {u.role === 'admin' ? '→ User' : '→ Admin'}
+                                        </button>
+
                                         <button className="btn btn-ghost btn-sm" onClick={() => deleteUser(u._id)} style={{ color: 'var(--accent-red)' }}>
                                             <Trash2 size={12} />
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* Assign to admin row (only for regular users) */}
                                 {u.role === 'user' && (
                                     <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                                         <span className="text-xs text-muted" style={{ minWidth: 100 }}>Assigned Admin:</span>
@@ -267,16 +266,11 @@ export default function SuperAdminPanel() {
                                             >
                                                 <option value="">— Unassigned —</option>
                                                 {admins.map(a => (
-                                                    <option key={a._id} value={a._id}>{a.name} ({a.email})</option>
+                                                    <option key={a._id} value={a._id}>{a.name}</option>
                                                 ))}
                                             </select>
                                             <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
                                         </div>
-                                        {u.assignedAdmin && (
-                                            <span className="badge badge-blue" style={{ fontSize: '0.68rem' }}>
-                                                📍 {u.assignedAdmin.name || u.assignedAdmin}
-                                            </span>
-                                        )}
                                     </div>
                                 )}
                             </div>

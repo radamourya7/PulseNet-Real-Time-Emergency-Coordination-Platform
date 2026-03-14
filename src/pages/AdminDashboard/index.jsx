@@ -9,12 +9,19 @@ import Broadcast from './components/Broadcast'
 import Incidents from './components/Incidents'
 import Evidence from './components/Evidence'
 import Tracking from './components/Tracking'
+import SystemStatusWidget from './components/SystemStatusWidget'
+import ActivityFeed from './components/ActivityFeed'
+import AlertFilters from './components/AlertFilters'
+import AlertManagement from './components/AlertManagement'
 
 export default function AdminDashboard() {
     const [activeSection, setActiveSection] = useState('overview')
     const [alerts, setAlerts] = useState([])
     const [loading, setLoading] = useState(true)
     const [broadcasts, setBroadcasts] = useState([])
+    const [socketStatus, setSocketStatus] = useState('Disconnected')
+    const [connectedUsers, setConnectedUsers] = useState(0)
+    const [filters, setFilters] = useState({ status: 'all', severity: 'all', region: 'all', query: '' })
     const socketRef = useRef(null)
     const user = getTokenPayload()
 
@@ -33,7 +40,16 @@ export default function AdminDashboard() {
 
         const token = localStorage.getItem('token')
         socketRef.current.on('connect', () => {
+            setSocketStatus('Connected')
             socketRef.current.emit('join-admin-room', token)
+        })
+
+        socketRef.current.on('disconnect', () => {
+            setSocketStatus('Disconnected')
+        })
+
+        socketRef.current.on('stats-update', (stats) => {
+            setConnectedUsers(stats.activeUsers || 0)
         })
 
         socketRef.current.on('new-alert', (alert) => {
@@ -74,10 +90,42 @@ export default function AdminDashboard() {
     }
 
     const renderSection = () => {
-        const commonProps = { alerts, loading, socket: socketRef.current, broadcasts, onUpdateStatus: handleUpdateStatus, user }
+        const filteredAlerts = alerts.filter(a => {
+            if (filters.status !== 'all' && a.status !== filters.status) return false
+            if (filters.severity !== 'all') {
+                const isPanic = a.type === 'panic'
+                if (filters.severity === 'critical' && !isPanic) return false
+                if (filters.severity === 'high' && isPanic) return false // simplistic mapping
+            }
+            if (filters.query) {
+                const q = filters.query.toLowerCase()
+                return a._id.toLowerCase().includes(q) || a.user?.name?.toLowerCase().includes(q)
+            }
+            return true
+        })
+
+        const commonProps = {
+            alerts: filteredAlerts,
+            loading,
+            socket: socketRef.current,
+            broadcasts,
+            onUpdateStatus: handleUpdateStatus,
+            user,
+            connectedUsers,
+            socketStatus
+        }
 
         switch (activeSection) {
             case 'overview':
+                return (
+                    <div className="flex flex-col gap-24 anim-fade">
+                        <SystemStatusWidget {...commonProps} />
+                        <div className="adm-grid-2" style={{ gridTemplateColumns: '1fr 350px' }}>
+                            <Analytics {...commonProps} />
+                            <ActivityFeed {...commonProps} />
+                        </div>
+                    </div>
+                )
             case 'analytics':
                 return <Analytics {...commonProps} />
             case 'map':
@@ -86,7 +134,12 @@ export default function AdminDashboard() {
                 return <Broadcast {...commonProps} />
             case 'incidents':
             case 'alerts':
-                return <Incidents {...commonProps} />
+                return (
+                    <div className="flex flex-col gap-16 anim-fade">
+                        <AlertFilters filters={filters} setFilters={setFilters} />
+                        <AlertManagement {...commonProps} />
+                    </div>
+                )
             case 'evidence':
                 return <Evidence {...commonProps} />
             case 'tracking':

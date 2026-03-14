@@ -72,11 +72,26 @@ export default function LiveMap({ alerts, selectedId, onSelectAlert }) {
     }, [selectedId])
 
     return (
-        <div className="adm-map-container" ref={containerRef} style={{ height: '500px' }}>
-            <div className="adm-map-legend">
-                <div className="adm-legend-item"><span className="status-dot crit" /> Emergency</div>
-                <div className="adm-legend-item"><span className="status-dot warn" /> Need Help</div>
-                <div className="adm-legend-item"><span className="status-dot live" /> Resolved</div>
+        <div className="adm-map-container card-sm p-0 overflow-hidden relative" ref={containerRef} style={{ height: '500px' }}>
+            <div className="absolute bottom-16 right-16 z-[1000] flex flex-col gap-8 bg-card/80 backdrop-blur-md p-12 rounded-lg border border-border shadow-xl">
+                <div className="text-[10px] font-black tracking-widest text-muted mb-4">GEOSPATIAL KEY</div>
+                <div className="flex items-center gap-12 text-[11px] font-bold">
+                    <span className="w-8 h-8 rounded-full bg-red shadow-red-glow" />
+                    <span className="text-secondary">CRITICAL INCIDENT</span>
+                </div>
+                <div className="flex items-center gap-12 text-[11px] font-bold">
+                    <span className="w-8 h-8 rounded-full bg-amber" />
+                    <span className="text-secondary">ELEVATED WARNING</span>
+                </div>
+                <div className="flex items-center gap-12 text-[11px] font-bold">
+                    <span className="w-8 h-8 rounded-full bg-green" />
+                    <span className="text-secondary">ASSET SECURED</span>
+                </div>
+            </div>
+
+            <div className="absolute top-16 left-16 z-[1000] bg-blue-dim/20 backdrop-blur-sm px-12 py-6 rounded border border-blue/20 flex items-center gap-8">
+                <div className="status-dot live" />
+                <span className="text-[9px] font-black tracking-[2px] text-blue">MAP CLUSTERS ACTIVE</span>
             </div>
         </div>
     )

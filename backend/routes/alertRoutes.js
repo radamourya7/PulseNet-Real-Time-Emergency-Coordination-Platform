@@ -72,6 +72,7 @@ router.get("/", protect, requireAdmin, async (req, res) => {
 
         const alerts = await Alert.find(query)
             .populate("user", "name email role")
+            .populate("assignedAdmin", "name email")
             .sort({ createdAt: -1 });
 
         res.json(alerts);
@@ -96,13 +97,14 @@ router.patch("/:id", protect, requireAdmin, async (req, res) => {
 
         const updated = await Alert.findByIdAndUpdate(
             req.params.id, { status }, { new: true }
-        ).populate("user", "name email role");
+        ).populate("user", "name email role")
+            .populate("assignedAdmin", "name email");
 
         const io = req.app.get("io");
         if (io) {
             // Notify admin sidebar
             if (updated.assignedAdmin) {
-                io.to(`admin:${updated.assignedAdmin}`).emit("alert-updated", updated);
+                io.to(`admin:${updated.assignedAdmin._id || updated.assignedAdmin}`).emit("alert-updated", updated);
             } else {
                 io.emit("alert-updated", updated);
             }
@@ -110,13 +112,46 @@ router.patch("/:id", protect, requireAdmin, async (req, res) => {
             io.to("superadmin-room").emit("alert-updated", updated);
             // Notify the user who sent the alert
             if (status === "resolved" && updated.user) {
-                io.to(`user:${updated.user}`).emit("alert-resolved", updated);
+                io.to(`user:${updated.user._id || updated.user}`).emit("alert-resolved", updated);
             }
         }
 
         res.json(updated);
     } catch (err) {
         res.status(500).json({ message: "Failed to update alert", error: err.message });
+    }
+});
+
+// ── PATCH /api/alerts/:id/assign — assign alert to an admin ────────────────
+router.patch("/:id/assign", protect, requireAdmin, async (req, res) => {
+    try {
+        const { adminId } = req.body; // null to unassign
+        const alertDoc = await Alert.findById(req.params.id);
+        if (!alertDoc) return res.status(404).json({ message: "Alert not found" });
+
+        // Only superadmins or the current assigned admin can reassign
+        if (req.user.role === "admin" &&
+            alertDoc.assignedAdmin &&
+            alertDoc.assignedAdmin.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Access denied: Not your alert to reassign" });
+        }
+
+        const updated = await Alert.findByIdAndUpdate(
+            req.params.id,
+            { assignedAdmin: adminId || null },
+            { new: true }
+        ).populate("user", "name email role")
+            .populate("assignedAdmin", "name email");
+
+        const io = req.app.get("io");
+        if (io) {
+            if (adminId) io.to(`admin:${adminId}`).emit("alert-updated", updated);
+            io.to("superadmin-room").emit("alert-updated", updated);
+            io.emit("alert-updated", updated);
+        }
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({ message: "Failed to assign responder", error: err.message });
     }
 });
 

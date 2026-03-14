@@ -1,13 +1,40 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     Clock, User, CheckCircle, MapPin, AlertCircle,
     MoreVertical, UserPlus, FileText, ChevronRight,
-    Shield, MessageSquare
+    Shield, MessageSquare, ChevronDown
 } from 'lucide-react'
+import { apiFetch } from '../../../api'
 
 export default function AlertManagement({ alerts, onUpdateStatus }) {
     const [selectedAlert, setSelectedAlert] = useState(null)
     const [notes, setNotes] = useState({})
+    const [responders, setResponders] = useState([])
+    const [loadingResponders, setLoadingResponders] = useState(false)
+    const [showAssignDropdown, setShowAssignDropdown] = useState(false)
+
+    useEffect(() => {
+        setLoadingResponders(true)
+        apiFetch('/api/admin/admins')
+            .then(data => setResponders(Array.isArray(data) ? data : []))
+            .catch(console.error)
+            .finally(() => setLoadingResponders(false))
+    }, [])
+
+    const handleAssign = async (alertId, adminId) => {
+        try {
+            const updated = await apiFetch(`/api/alerts/${alertId}/assign`, {
+                method: 'PATCH',
+                body: { adminId }
+            })
+            if (selectedAlert?._id === alertId) {
+                setSelectedAlert(updated)
+            }
+            setShowAssignDropdown(false)
+        } catch (err) {
+            console.error('Failed to assign responder:', err)
+        }
+    }
 
     const getSeverityBadge = (type) => {
         if (type === 'panic') return <span className="badge badge-red">CRITICAL</span>
@@ -103,11 +130,43 @@ export default function AlertManagement({ alerts, onUpdateStatus }) {
                         </div>
                         <div className="detail-item">
                             <label>Assignment</label>
-                            <div className="flex items-center gap-8 mt-4">
-                                <button className="btn btn-ghost btn-sm w-full justify-start">
-                                    <UserPlus size={14} />
-                                    {selectedAlert.assignedAdmin?.name || 'Assign Responder'}
+                            <div className="flex items-center gap-8 mt-4 relative">
+                                <button
+                                    className="btn btn-ghost btn-sm w-full justify-between"
+                                    onClick={() => setShowAssignDropdown(!showAssignDropdown)}
+                                >
+                                    <div className="flex items-center gap-8">
+                                        <UserPlus size={14} className="text-blue" />
+                                        <span className={selectedAlert.assignedAdmin ? 'font-bold' : 'italic text-muted'}>
+                                            {selectedAlert.assignedAdmin?.name || 'Assign Responder'}
+                                        </span>
+                                    </div>
+                                    <ChevronDown size={14} className={`transition-transform ${showAssignDropdown ? 'rotate-180' : ''}`} />
                                 </button>
+
+                                {showAssignDropdown && (
+                                    <div className="absolute top-full left-0 right-0 mt-4 bg-secondary border border-border rounded-md shadow-lg z-10 max-h-[200px] overflow-y-auto">
+                                        <button
+                                            className="w-full px-12 py-8 text-left text-xs hover:bg-card border-b border-border/50 italic text-muted"
+                                            onClick={() => handleAssign(selectedAlert._id, null)}
+                                        >
+                                            Unassign Responder
+                                        </button>
+                                        {responders.map(admin => (
+                                            <button
+                                                key={admin._id}
+                                                className="w-full px-12 py-8 text-left text-xs hover:bg-card flex items-center justify-between"
+                                                onClick={() => handleAssign(selectedAlert._id, admin._id)}
+                                            >
+                                                <span>{admin.name}</span>
+                                                {selectedAlert.assignedAdmin?._id === admin._id && <CheckCircle size={10} className="text-green" />}
+                                            </button>
+                                        ))}
+                                        {responders.length === 0 && (
+                                            <div className="px-12 py-8 text-xs text-muted text-center">No admins found</div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

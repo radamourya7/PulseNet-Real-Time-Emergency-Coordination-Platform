@@ -7,7 +7,7 @@ const { requireSuperAdmin } = require("../middleware/roleMiddleware");
 const router = express.Router();
 
 // ── GET /api/admin/admins ─ list all admin accounts (for assign dropdown) ─────
-router.get("/admins", protect, requireSuperAdmin, async (req, res) => {
+router.get("/admins", protect, requireAdmin, async (req, res) => {
     try {
         const admins = await User.find({ role: "admin", status: "approved" })
             .select("_id name email")

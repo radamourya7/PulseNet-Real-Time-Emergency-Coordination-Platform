@@ -65,11 +65,18 @@ export default function LandingPage() {
                         <div className="logo-text">PulseNet</div>
                     </div>
                     <button
-                        className="btn btn-ghost btn-sm"
+                        className="btn btn-ghost btn-sm hide-mobile"
                         style={{ marginLeft: '12px' }}
                         onClick={() => navigate('/about')}
                     >
                         About Us
+                    </button>
+                    <button
+                        className="btn btn-ghost btn-sm hide-mobile"
+                        style={{ marginLeft: '8px', color: 'var(--accent-red)' }}
+                        onClick={() => navigate('/join-dev')}
+                    >
+                        Join Dev Team
                     </button>
                 </div>
                 <div className="flex items-center gap-8">
@@ -151,7 +158,31 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-8">
                     <span
-                        className="text-xs text-muted cursor-pointer hover:text-primary transition-colors"
+                        className="text-xs cursor-pointer transition-all hover:scale-105 show-mobile"
+                        style={{
+                            color: 'var(--accent-red)',
+                            fontWeight: 600,
+                            padding: '4px 10px',
+                            background: 'var(--accent-red-dim)',
+                            borderRadius: '12px',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                            marginRight: '8px',
+                            display: 'none' /* Will be shown by index.css .show-mobile */
+                        }}
+                        onClick={() => navigate('/join-dev')}
+                    >
+                        Join Dev Team
+                    </span>
+                    <span
+                        className="text-xs cursor-pointer transition-all hover:scale-105"
+                        style={{
+                            color: 'var(--accent-blue)',
+                            fontWeight: 600,
+                            padding: '4px 10px',
+                            background: 'var(--accent-blue-dim)',
+                            borderRadius: '12px',
+                            border: '1px solid rgba(59, 130, 246, 0.2)'
+                        }}
                         onClick={() => navigate('/about')}
                     >
                         About Developer

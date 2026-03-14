@@ -88,7 +88,7 @@ function LeafletMap({ alerts, selectedId, onSelectAlert }) {
             } else {
                 const m = L.marker([lat, lng], { icon: makePinIcon(sev) })
                     .addTo(map)
-                    .bindPopup(`<b>${alert.user?.name || 'User'}</b><br/>${alert.type} ┬À ${alert.status}<br/>${lat.toFixed(4)}┬░N, ${lng.toFixed(4)}┬░E`)
+                    .bindPopup(`<b>${alert.user?.name || 'User'}</b><br/>${alert.type} - ${alert.status}<br/>${lat.toFixed(4)}N, ${lng.toFixed(4)}E`)
                 m.on('click', () => onSelectAlert(alert))
                 markersRef.current[alert._id] = m
             }
@@ -145,7 +145,7 @@ function DetailPanel({ alert, onClose, onResolve }) {
             <div>
                 <div className="text-xs text-muted mb-4">GPS Location</div>
                 <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
-                    {alert.location?.lat?.toFixed(5) ?? 'ÔÇö'}┬░N, {alert.location?.lng?.toFixed(5) ?? 'ÔÇö'}┬░E
+                    {alert.location?.lat?.toFixed(5) ?? '--'}N, {alert.location?.lng?.toFixed(5) ?? '--'}E
                 </div>
             </div>
             <div>
@@ -336,7 +336,10 @@ export default function AdminCommandCenter() {
                                 <div className="font-semibold text-sm">{alert.user?.name || 'Unknown'}</div>
                                 <div className="flex items-center gap-4 text-xs text-muted" style={{ marginTop: 2 }}>
                                     <MapPin size={10} />
-                                    {alert.location?.lat?.toFixed(3) ?? '?'}┬░N ┬À <span className="capitalize">{alert.type}</span>
+                                    <span>{alert.location?.lat?.toFixed(3) ?? '?'}N - <span className="capitalize">{alert.type}</span></span>
+                                    {alert.evidence && alert.evidence.length > 0 && (
+                                        <ImageIcon size={10} className="text-blue" style={{ marginLeft: 4 }} title="Has Media Evidence" />
+                                    )}
                                 </div>
                             </div>
                             <ChevronRight size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />

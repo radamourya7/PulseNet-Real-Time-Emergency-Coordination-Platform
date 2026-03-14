@@ -66,14 +66,7 @@ export default function LandingPage() {
                     </div>
                     <button
                         className="btn btn-ghost btn-sm hide-mobile"
-                        style={{ marginLeft: '12px' }}
-                        onClick={() => navigate('/about')}
-                    >
-                        About Us
-                    </button>
-                    <button
-                        className="btn btn-ghost btn-sm hide-mobile"
-                        style={{ marginLeft: '8px', color: 'var(--accent-red)' }}
+                        style={{ marginLeft: '12px', color: 'var(--accent-red)' }}
                         onClick={() => navigate('/join-dev')}
                     >
                         Join Dev Team

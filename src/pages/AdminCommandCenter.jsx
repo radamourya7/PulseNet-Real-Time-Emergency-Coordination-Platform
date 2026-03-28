@@ -345,6 +345,7 @@ export default function AdminCommandCenter() {
                             <ChevronRight size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
                         </div>
                     ))}
+
                 </div>
             </div>
 

@@ -8,6 +8,13 @@ const userSchema = new mongoose.Schema({
     status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
     // Which admin this user is assigned to (set by superadmin)
     assignedAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    // Dispatch availability and last position
+    lastKnownLocation: {
+        lat: { type: Number, default: null },
+        lng: { type: Number, default: null },
+    },
+    isAvailable: { type: Boolean, default: true },
+    pushSubscription: { type: Object, default: null },
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

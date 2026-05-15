@@ -3,7 +3,6 @@ import {
     Radio, Shield, Zap, MapPin, Bell, Users,
     Activity, Lock, ArrowRight
 } from 'lucide-react'
-import AdBanner from '../components/AdBanner'
 
 function Particles() {
     const count = 20
@@ -110,19 +109,6 @@ export default function LandingPage() {
                     </button>
                 </div>
 
-                <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
-                    <AdBanner
-                        atOptions={{
-                            'key': '98fb135b1a06771ff53237f7356bf1c7',
-                            'format': 'iframe',
-                            'height': 300,
-                            'width': 160,
-                            'params': {}
-                        }}
-                        scriptUrl="https://www.highperformanceformat.com/98fb135b1a06771ff53237f7356bf1c7/invoke.js"
-                    />
-                </div>
-
                 {/* Stats */}
                 <div className="hero-stats anim-fade-up delay-4">
                     {[
@@ -139,19 +125,6 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-                <AdBanner
-                    atOptions={{
-                        'key': '0071efe9fd792b358f3320cadcb877d1',
-                        'format': 'iframe',
-                        'height': 60,
-                        'width': 468,
-                        'params': {}
-                    }}
-                    scriptUrl="https://www.highperformanceformat.com/0071efe9fd792b358f3320cadcb877d1/invoke.js"
-                />
-            </div>
-
             {/* Features */}
             <div className="features-grid">
                 {features.map(({ icon: Icon, color, bg, title, desc }, i) => (
@@ -163,19 +136,6 @@ export default function LandingPage() {
                         <div className="text-sm text-secondary" style={{ lineHeight: '1.7' }}>{desc}</div>
                     </div>
                 ))}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0', borderTop: '1px solid var(--border)', background: 'rgba(10,12,15,0.4)' }}>
-                <AdBanner
-                    atOptions={{
-                        'key': '0071efe9fd792b358f3320cadcb877d1',
-                        'format': 'iframe',
-                        'height': 60,
-                        'width': 468,
-                        'params': {}
-                    }}
-                    scriptUrl="https://www.highperformanceformat.com/0071efe9fd792b358f3320cadcb877d1/invoke.js"
-                />
             </div>
 
             {/* Footer bar */}
@@ -190,12 +150,6 @@ export default function LandingPage() {
                     <span className="text-xs text-muted">End-to-end encrypted · SOC 2 Type II · GDPR compliant</span>
                 </div>
 
-                <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-                    <AdBanner
-                        id="container-705cbac46b18dbd5f76ccbcd95be60a9"
-                        scriptUrl="https://pl29003862.profitablecpmratenetwork.com/705cbac46b18dbd5f76ccbcd95be60a9/invoke.js"
-                    />
-                </div>
                 <div className="flex items-center gap-8">
                     <span
                         className="text-xs cursor-pointer transition-all hover:scale-105 show-mobile"

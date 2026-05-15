@@ -12,9 +12,36 @@ router.post("/", protect, async (req, res) => {
     try {
         const { lat, lng, type, evidence } = req.body;
 
-        // Look up the user's assigned admin
-        const userDoc = await User.findById(req.user.id).select("assignedAdmin");
-        const assignedAdmin = userDoc?.assignedAdmin || null;
+        // Helper: Haversine distance in KM
+        const getDistance = (lat1, lon1, lat2, lon2) => {
+            const p = 0.017453292519943295;
+            const c = Math.cos;
+            const a = 0.5 - c((lat2 - lat1) * p) / 2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
+            return 12742 * Math.asin(Math.sqrt(a));
+        };
+
+        // Find closest available admin or superadmin
+        const admins = await User.find({
+            role: { $in: ["admin", "superadmin"] },
+            isAvailable: true,
+            "lastKnownLocation.lat": { $ne: null }
+        });
+        let assignedAdmin = null;
+        let minDistance = Infinity;
+
+        admins.forEach(admin => {
+            const dist = getDistance(lat || 0, lng || 0, admin.lastKnownLocation.lat, admin.lastKnownLocation.lng);
+            if (dist < minDistance) {
+                minDistance = dist;
+                assignedAdmin = admin._id;
+            }
+        });
+
+        // Fallback: use historically assigned admin
+        if (!assignedAdmin) {
+            const userDoc = await User.findById(req.user.id).select("assignedAdmin");
+            assignedAdmin = userDoc?.assignedAdmin || null;
+        }
 
         const alert = await Alert.create({
             user: req.user.id,
@@ -31,6 +58,19 @@ router.post("/", protect, async (req, res) => {
             if (assignedAdmin) {
                 io.to(`admin:${assignedAdmin}`).emit("new-alert", alert);
                 io.to("superadmin-room").emit("new-alert", alert);
+
+                // Dispatch Background Web Push Notification to assigned Admin
+                const adminDoc = admins.find(a => a._id.toString() === assignedAdmin.toString());
+                if (adminDoc && adminDoc.pushSubscription && process.env.VAPID_PUBLIC_KEY) {
+                    const webpush = require("web-push");
+                    webpush.setVapidDetails("mailto:admin@pulsenet.com", process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+
+                    const pushPayload = JSON.stringify({
+                        title: "Critical SOS Triggered!",
+                        body: `A new ${type} alert in your sector just came in.`
+                    });
+                    webpush.sendNotification(adminDoc.pushSubscription, pushPayload).catch(err => console.error("Push Error:", err));
+                }
             } else {
                 io.emit("new-alert", alert);
             }

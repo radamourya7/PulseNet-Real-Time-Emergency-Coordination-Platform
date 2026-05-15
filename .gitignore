@@ -33,3 +33,7 @@ dist-ssr
 
 # PWA dev build
 dev-dist/
+
+# Duplicate Laravel Testing Sandbox
+/PulseNet-Laravel/
+

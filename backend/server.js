@@ -107,6 +107,7 @@ connectDB().then(() => seedSuperAdmin());
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/alerts", require("./routes/alertRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
+app.use("/api/push", require("./routes/pushRoutes"));
 
 app.get("/api/ping", (req, res) => res.json({ status: "ok", message: "PulseNet Backend Reachable", port: 5005 }));
 app.get("/", (req, res) => res.json({ status: "ok", message: "PulseNet API Running" }));

@@ -63,56 +63,76 @@ export default function LandingPage() {
                     90% { transform: translate(-50%, 0) scale(1); opacity: 1; }
                     100% { transform: translate(-50%, 150px) scale(0.9); opacity: 0; }
                 }
+                @keyframes floatPillMobile {
+                    0% { transform: translateY(100px) scale(0.95); opacity: 0; }
+                    10% { transform: translateY(0) scale(1); opacity: 1; }
+                    90% { transform: translateY(0) scale(1); opacity: 1; }
+                    100% { transform: translateY(100px) scale(0.95); opacity: 0; }
+                }
                 @keyframes pulseGlow {
-                    0%, 100% { opacity: 0.4; transform: scale(1); box-shadow: 0 0 10px var(--accent-blue); }
-                    50% { opacity: 1; transform: scale(1.5); box-shadow: 0 0 20px var(--accent-blue); }
+                    0%, 100% { opacity: 0.4; transform: scale(1); }
+                    50% { opacity: 1; transform: scale(1.5); }
                 }
                 .creative-pill {
                     position: fixed;
                     bottom: 40px;
                     left: 50%;
                     transform: translateX(-50%);
-                    background: rgba(10, 12, 15, 0.7);
+                    background: rgba(10, 12, 15, 0.85);
                     backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
                     border: 1px solid rgba(59, 130, 246, 0.25);
-                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-                    padding: 14px 28px;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                    padding: 12px 24px;
                     border-radius: 50px;
                     display: flex;
                     align-items: center;
-                    gap: 16px;
+                    gap: 12px;
                     z-index: 9999;
                     pointer-events: none;
                     animation: floatPill 12s cubic-bezier(0.16, 1, 0.3, 1) infinite;
                     white-space: nowrap;
+                    max-width: 90vw;
                 }
                 .creative-pill-glow {
-                    width: 8px;
-                    height: 8px;
+                    width: 7px;
+                    height: 7px;
                     background: var(--accent-blue);
                     border-radius: 50%;
                     flex-shrink: 0;
                     animation: pulseGlow 2s infinite;
+                    box-shadow: 0 0 8px var(--accent-blue);
                 }
                 .creative-pill-text {
                     color: white;
-                    font-size: 0.85rem;
+                    font-size: 0.82rem;
                     font-weight: 600;
-                    letter-spacing: 0.5px;
+                    letter-spacing: 0.3px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
-                /* Mobile */
-                @media (max-width: 600px) {
+                @media (max-width: 640px) {
                     .creative-pill {
-                        bottom: 20px;
-                        left: 16px;
-                        right: 16px;
-                        transform: none;
+                        bottom: 16px;
+                        left: 12px;
+                        right: 12px;
+                        transform: none !important;
                         white-space: normal;
-                        text-align: center;
-                        justify-content: center;
-                        padding: 12px 20px;
+                        text-align: left;
+                        padding: 10px 16px;
+                        border-radius: 16px;
+                        gap: 10px;
+                        animation: floatPillMobile 12s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+                        max-width: none;
                     }
-                    .creative-pill-text { font-size: 0.75rem; }
+                    .creative-pill-text {
+                        font-size: 0.72rem;
+                        white-space: normal;
+                        overflow: visible;
+                        text-overflow: unset;
+                        line-height: 1.4;
+                    }
                     .custom-tooltip { display: none !important; }
                 }
             `}</style>

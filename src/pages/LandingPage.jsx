@@ -55,6 +55,75 @@ export default function LandingPage() {
                 }} />
             </div>
 
+            {/* Creative Floating Pill Announcement */}
+            <style>{`
+                @keyframes floatPill {
+                    0% { transform: translate(-50%, 150px) scale(0.9); opacity: 0; }
+                    10% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+                    90% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+                    100% { transform: translate(-50%, 150px) scale(0.9); opacity: 0; }
+                }
+                @keyframes pulseGlow {
+                    0%, 100% { opacity: 0.4; transform: scale(1); box-shadow: 0 0 10px var(--accent-blue); }
+                    50% { opacity: 1; transform: scale(1.5); box-shadow: 0 0 20px var(--accent-blue); }
+                }
+                .creative-pill {
+                    position: fixed;
+                    bottom: 40px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(10, 12, 15, 0.7);
+                    backdrop-filter: blur(16px);
+                    border: 1px solid rgba(59, 130, 246, 0.25);
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    padding: 14px 28px;
+                    border-radius: 50px;
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    z-index: 9999;
+                    pointer-events: none;
+                    animation: floatPill 12s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+                    white-space: nowrap;
+                }
+                .creative-pill-glow {
+                    width: 8px;
+                    height: 8px;
+                    background: var(--accent-blue);
+                    border-radius: 50%;
+                    flex-shrink: 0;
+                    animation: pulseGlow 2s infinite;
+                }
+                .creative-pill-text {
+                    color: white;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    letter-spacing: 0.5px;
+                }
+                /* Mobile */
+                @media (max-width: 600px) {
+                    .creative-pill {
+                        bottom: 20px;
+                        left: 16px;
+                        right: 16px;
+                        transform: none;
+                        white-space: normal;
+                        text-align: center;
+                        justify-content: center;
+                        padding: 12px 20px;
+                    }
+                    .creative-pill-text { font-size: 0.75rem; }
+                    .custom-tooltip { display: none !important; }
+                }
+            `}</style>
+            <div className="creative-pill">
+                <div className="creative-pill-glow"></div>
+                <div className="creative-pill-text">
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Decrypting Transmission — </span>
+                    Project Oracle A.I. Tactical Core drops <span style={{ color: '#60a5fa', textShadow: '0 0 15px rgba(96,165,250,0.5)' }}>May 23rd</span>
+                </div>
+            </div>
+
             {/* Nav */}
             <nav className="landing-nav">
                 <div className="flex items-center gap-12">
@@ -84,9 +153,49 @@ export default function LandingPage() {
 
             {/* Hero */}
             <section className="landing-hero">
-                <div className="hero-eyebrow anim-fade">
+                <div
+                    className="hero-eyebrow anim-fade"
+                    style={{ position: 'relative' }}
+                    onMouseEnter={(e) => e.currentTarget.querySelector('.custom-tooltip').style.opacity = '1'}
+                    onMouseLeave={(e) => e.currentTarget.querySelector('.custom-tooltip').style.opacity = '0'}
+                >
                     <div className="status-dot live"></div>
-                    Emergency Response Platform · v2.4.1
+                    Emergency Response Platform ·
+                    <span
+                        style={{ cursor: 'pointer', fontWeight: 600, marginLeft: '4px' }}
+                        onClick={() => navigate('/about')}
+                    >
+                        v3.0.0
+                    </span>
+
+                    <div className="custom-tooltip" style={{
+                        position: 'absolute',
+                        left: '100%',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        marginLeft: '20px',
+                        background: 'rgba(10,12,15,0.95)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(59,130,246,0.3)',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        width: '280px',
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.8rem',
+                        fontWeight: 400,
+                        textAlign: 'center',
+                        lineHeight: '1.5',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                        opacity: 0,
+                        pointerEvents: 'none',
+                        transition: 'opacity 0.2s ease',
+                        zIndex: 100
+                    }}>
+                        <div style={{ color: 'white', fontWeight: 700, fontSize: '0.85rem', marginBottom: '4px' }}>
+                            🔥 Project Apex Released
+                        </div>
+                        Click to check out the architectural deployment logs on the About Us board.
+                    </div>
                 </div>
 
                 <h1 className="hero-title anim-fade-up delay-1">

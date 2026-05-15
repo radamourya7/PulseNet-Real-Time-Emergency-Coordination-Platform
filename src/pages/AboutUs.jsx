@@ -9,10 +9,18 @@ import {
 
 const updates = [
     {
+        version: 'v3.0.0',
+        type: 'Major',
+        date: 'May 16, 2026',
+        title: 'Operation Pathfinder: Geodesic Routing & OS Hooks',
+        desc: 'Built Haversine mathematical routing for automated Admin assignments. Upgraded Service Workers to intercept strict Background Web Push OS Notifications instantly off-screen.',
+        tags: ['Architecture', 'Core', 'Service Worker']
+    },
+    {
         version: 'v2.3.0',
         type: 'Small',
         date: 'March 15, 2026',
-        title: 'Admin Media Integration',
+        title: 'Project Overwatch: Admin Media Integration',
         desc: 'Implemented real-time media preview for SOS alerts. Admins can now view photos uploaded by users during emergencies directly in the Command Center.',
         tags: ['Backend', 'UI/UX']
     },
@@ -20,7 +28,7 @@ const updates = [
         version: 'v2.2.0',
         type: 'Small',
         date: 'March 12, 2026',
-        title: 'SOS Image Upload & Compression',
+        title: 'Codename Prism: Visual Asset Compression',
         desc: 'Added client-side image compression for faster emergency uploads and secondary cloud storage for incident evidence.',
         tags: ['Feature', 'Optimization']
     },
@@ -28,7 +36,7 @@ const updates = [
         version: 'v2.1.0',
         type: 'Small',
         date: 'March 08, 2026',
-        title: 'Real-time Tracking Engine',
+        title: 'Project Velocity: Real-time Polling Reduction',
         desc: 'Upgraded WebSocket engine to support 2-second location polling with sub-50ms latency for all responders.',
         tags: ['Core', 'Performance']
     },
@@ -36,7 +44,7 @@ const updates = [
         version: 'v2.0.0',
         type: 'Major',
         date: 'March 04, 2026',
-        title: 'Admin Dashboard Refactor',
+        title: 'Project Nexus: Hub Refactor',
         desc: 'Completely redesigned the Admin Command Center with a multi-panel layout for incident management, fleet tracking, and live communications.',
         tags: ['UI/UX', 'Refactor']
     },
@@ -44,7 +52,7 @@ const updates = [
         version: 'v1.0.0',
         type: 'Major',
         date: 'March 01, 2026',
-        title: 'Role-Based Access Control',
+        title: 'Operation Gatekeeper: Zero-Trust Protocols',
         desc: 'Implemented granular permissions system for SuperAdmins, Admins, and Users to ensure data security.',
         tags: ['Security', 'Core']
     }
@@ -70,19 +78,17 @@ const AboutUs = () => {
 
             {/* Header */}
             <style>{`
-                @keyframes scroll {
-                    0% { transform: translateY(0); }
-                    100% { transform: translateY(-50%); }
-                }
-                .updates-scroll-container {
+                .updates-list {
                     display: flex;
                     flex-direction: column;
                     gap: 24px;
-                    animation: scroll 30s linear infinite;
                 }
-                .updates-scroll-container:hover {
-                    animation-play-state: paused;
-                }
+                /* Custom sleek scrollbar */
+                .updates-scroll-container::-webkit-scrollbar { width: 8px; }
+                .updates-scroll-container::-webkit-scrollbar-track { background: transparent; }
+                .updates-scroll-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+                .updates-scroll-container::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
                 @media (max-width: 768px) {
                     .profile-title { font-size: 1.8rem !important; }
                     .about-header { padding: 24px 16px !important; }
@@ -172,17 +178,14 @@ const AboutUs = () => {
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Project Updates</h2>
                     </div>
 
-                    <div style={{
-                        height: '400px',
-                        overflow: 'hidden',
-                        position: 'relative',
-                        maskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)',
-                        WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)'
+                    <div className="updates-scroll-container" style={{
+                        maxHeight: '600px',
+                        overflowY: 'auto',
+                        paddingRight: '16px'
                     }}>
-                        <div className="updates-scroll-container">
-                            {[...updates, ...updates].map((update, i) => {
-                                const realIndex = i % updates.length;
-                                const displayNumber = updates.length - realIndex;
+                        <div className="updates-list">
+                            {updates.map((update, i) => {
+                                const displayNumber = updates.length - i;
                                 return (
                                     <div
                                         key={i}
@@ -194,22 +197,19 @@ const AboutUs = () => {
                                             position: 'relative'
                                         }}
                                     >
-                                        <div style={{
-                                            position: 'absolute',
-                                            right: '24px',
-                                            top: '-12px',
-                                            background: 'var(--accent-blue)',
-                                            color: 'white',
-                                            padding: '2px 8px',
-                                            borderRadius: '4px',
-                                            fontSize: '0.7rem',
-                                            fontWeight: 700,
-                                            boxShadow: 'var(--shadow-blue)'
-                                        }}>
-                                            UPDATE #{displayNumber}
-                                        </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                                                <div style={{
+                                                    background: 'var(--accent-blue)',
+                                                    color: 'white',
+                                                    padding: '2px 8px',
+                                                    borderRadius: '4px',
+                                                    fontSize: '0.65rem',
+                                                    fontWeight: 800,
+                                                    boxShadow: 'var(--shadow-blue)'
+                                                }}>
+                                                    #{displayNumber}
+                                                </div>
                                                 <Calendar size={14} />
                                                 {update.date}
                                                 <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>• {update.version}</span>

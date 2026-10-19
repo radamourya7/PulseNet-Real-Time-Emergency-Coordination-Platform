@@ -120,52 +120,134 @@ const AboutUs = () => {
 
             <main className="about-main" style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 10 }}>
 
-                {/* Profile Section */}
-                <section className="anim-fade-up" style={{ textAlign: 'center', marginBottom: '64px' }}>
-                    <div style={{
-                        width: '120px',
-                        height: '120px',
-                        borderRadius: '30px',
-                        background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-purple))',
-                        margin: '0 auto 24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 20px 40px rgba(59, 130, 246, 0.3)',
-                        border: '4px solid var(--bg-card)'
-                    }}>
-                        <User size={60} color="white" />
-                    </div>
-                    <h1 className="profile-title" style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '8px', letterSpacing: '-1px' }}>Rada Sai Mourya</h1>
-                    <p style={{ color: 'var(--accent-blue)', fontWeight: 600, fontSize: '1.1rem', marginBottom: '24px' }}>Full Stack Developer & Architect</p>
+                
+{/* Team Section */}
+<section className="anim-fade-up" style={{ marginBottom: '64px' }}>
+    <h1 style={{
+        textAlign: 'center',
+        fontSize: '2.5rem',
+        fontWeight: 800,
+        marginBottom: '12px'
+    }}>
+        Meet Our Team
+    </h1>
 
-                    <p style={{
-                        lineHeight: '1.8',
-                        color: 'var(--text-secondary)',
-                        fontSize: '1.05rem',
-                        marginBottom: '32px'
-                    }}>
-                        I am a passionate Full Stack Developer dedicated to building high-performance, real-time applications
-                        that solve complex logistical and safety challenges. PulseNet is the culmination of my vision for a
-                        unified, resilient, and lightning-fast emergency coordination platform.
-                    </p>
+    <p style={{
+        textAlign: 'center',
+        color: 'var(--text-secondary)',
+        marginBottom: '40px'
+    }}>
+        The people behind PulseNet
+    </p>
 
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
-                        <a href="https://github.com/radamourya7" target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ padding: '8px 16px' }}>
-                            <Github size={18} />
-                        </a>
-                        <a href="https://www.linkedin.com/in/rada-sai-mourya/" target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ padding: '8px 16px' }}>
-                            <Linkedin size={18} />
-                        </a>
-                        <a href="#" className="btn btn-ghost btn-sm" style={{ padding: '8px 16px' }}>
-                            <Twitter size={18} />
-                        </a>
-                        <a href="mailto:radamourya7@gmail.com" className="btn btn-primary btn-sm" style={{ padding: '8px 20px' }}>
-                            <Mail size={18} />
-                            Contact Me
-                        </a>
-                    </div>
-                </section>
+    <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: '24px'
+    }}>
+        {/* Mourya */}
+        <div className="card" style={{
+            textAlign: 'center',
+            padding: '32px 24px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)'
+        }}>
+            <div style={{
+                width: '100px',
+                height: '100px',
+                borderRadius: '28px',
+                background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-purple))',
+                margin: '0 auto 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+                <User size={50} color="white" />
+            </div>
+
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
+                Rada Sai Mourya
+            </h2>
+
+            <p style={{
+                color: 'var(--accent-blue)',
+                fontWeight: 600,
+                margin: '10px 0 16px'
+            }}>
+                Full Stack Developer & Architect
+            </p>
+
+            <p style={{
+                color: 'var(--text-secondary)',
+                lineHeight: 1.7
+            }}>
+                Passionate about building high-performance, real-time
+                applications and developing reliable emergency
+                coordination systems.
+            </p>
+
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '16px',
+                marginTop: '24px'
+            }}>
+                <a href="https://github.com/radamourya7"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    <Github size={20} />
+                </a>
+                <a href="https://www.linkedin.com/in/rada-sai-mourya/"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    <Linkedin size={20} />
+                </a>
+            </div>
+        </div>
+
+        {/* Saksham */}
+        <div className="card" style={{
+            textAlign: 'center',
+            padding: '32px 24px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)'
+        }}>
+            <div style={{
+                width: '100px',
+                height: '100px',
+                borderRadius: '28px',
+                background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-blue))',
+                margin: '0 auto 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+                <User size={50} color="white" />
+            </div>
+
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
+                Saksham
+            </h2>
+
+            <p style={{
+                color: 'var(--accent-blue)',
+                fontWeight: 600,
+                margin: '10px 0 16px'
+            }}>
+                Architect & Data Analyst
+            </p>
+
+            <p style={{
+                color: 'var(--text-secondary)',
+                lineHeight: 1.7
+            }}>
+                Focused on system architecture, data analysis, and
+                turning complex data into meaningful insights to
+                support smarter emergency response decisions.
+            </p>
+        </div>
+    </div>
+</section>
 
                 <div className="divider" style={{ margin: '64px 0' }}></div>
 

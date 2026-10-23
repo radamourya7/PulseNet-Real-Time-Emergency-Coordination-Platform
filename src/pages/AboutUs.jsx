@@ -226,7 +226,7 @@ const AboutUs = () => {
             </div>
 
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-                Saksham
+                Saksham Choudhary
             </h2>
 
             <p style={{
@@ -356,7 +356,7 @@ const AboutUs = () => {
                         <ArrowRight size={18} />
                     </button>
                     <p style={{ marginTop: '24px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        © 2026 PulseNet Systems · Developed with ❤️ by Rada Sai Mourya
+                        © 2026 PulseNet Systems · Developed with ❤️ by Rada Sai Mourya, Saksham Choudhary
                     </p>
                 </div>
             </main>
